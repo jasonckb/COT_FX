@@ -5,24 +5,24 @@ import openpyxl
 
 # Helper function to format percentage columns
 def format_percentage_columns(sheet_data):
-    for col in sheet_data.columns:
-        # Identify columns that should be formatted as percentages
-        if col.endswith('%'):
-            sheet_data[col] = pd.to_numeric(sheet_data[col], errors='coerce').apply(lambda x: f"{x:.2%}" if pd.notnull(x) else x)
-    return sheet_data
+    formatted_sheet = sheet_data.copy()
+    for col in formatted_sheet.columns:
+        # Ensure the column name is a string before checking if it ends with '%'
+        if isinstance(col, str) and col.endswith('%'):
+            formatted_sheet[col] = pd.to_numeric(formatted_sheet[col], errors='coerce').apply(lambda x: f"{x:.2%}" if pd.notnull(x) else x)
+    return formatted_sheet
 
 # Read data from Dropbox
 @st.cache(allow_output_mutation=True)
 def load_data():
     url = "https://www.dropbox.com/scl/fi/c50v70ob66syx58vtc028/COT-Report.xlsx?rlkey=3fu2xoqsln3gaj084hw0rfcw0&dl=1"
-    # Load the sheet names first to decide on skiprows for 'Summary'
     xls = pd.ExcelFile(url, engine='openpyxl')
     all_sheets_data = {}
     for sheet_name in xls.sheet_names:
-        skiprows = [0] if sheet_name == "Summary" else None
-        sheet_data = pd.read_excel(xls, sheet_name=sheet_name, skiprows=skiprows)
+        # Use the first row as header by default, and manually skip for 'Summary' if necessary
+        header_row = 0 if sheet_name != "Summary" else 1
+        sheet_data = pd.read_excel(xls, sheet_name=sheet_name, header=header_row)
         all_sheets_data[sheet_name] = format_percentage_columns(sheet_data)
-
     return all_sheets_data
 
 data = load_data()
@@ -33,6 +33,9 @@ sheet = st.sidebar.selectbox("Select a sheet:", options=sheet_names)
 
 # Display data table for the selected sheet with percentage formatting applied
 st.dataframe(data[sheet])
+
+# Rest of your Streamlit code...
+
 
 # Display interactive charts for selected sheet, excluding 'Summary'
 if sheet.lower() != 'summary':
