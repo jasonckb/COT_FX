@@ -15,29 +15,24 @@ def format_dataframe(df, percentage_columns):
 def load_data():
     url = "https://www.dropbox.com/scl/fi/fj9ovd8bn7c6ntbp0i0uw/COT-Report.xlsx?rlkey=9ag1xpfm8v1wvkg1xqm0m2bun&dl=1"
     data = pd.read_excel(url, sheet_name=None, engine='openpyxl')
-
-    # Determine percentage columns for each sheet
-    percentage_columns = {
-        sheet_name: [col for col in sheet_data.columns if '%' in col or sheet_data[col].dtype in ['float64', 'float32']]
-        for sheet_name, sheet_data in data.items()
-    }
-
-    # Format each sheet appropriately
+    
+    # Format all numeric data as percentages
     for sheet_name, sheet_data in data.items():
-        if sheet_name.lower() == 'summary':
-            # Create custom header by merging the first row for the 'Summary' sheet
-            #merged_header = ' '.join(sheet_data.iloc[0].dropna().astype(str))
-            sheet_data.columns = [merged_header] + sheet_data.columns.tolist()[1:]
-            data[sheet_name] = sheet_data.iloc[1:]
-        # Apply percentage formatting to specified columns
-        data[sheet_name] = format_dataframe(sheet_data, percentage_columns[sheet_name])
-
+        for col in sheet_data.select_dtypes(include=['float64', 'float32']).columns:
+            # Assuming that all float columns need to be formatted as percentages
+            sheet_data[col] = sheet_data[col].apply(lambda x: f"{x:.2%}" if pd.notnull(x) else x)
+    
     return data
 
 data = load_data()
 
 # Sidebar for sheet selection
-sheet = st.sidebar.selectbox("Select a sheet:", options=['Summary'] + [s for s in data.keys() if s.lower() != 'summary'])
+sheet_names = list(data.keys())
+sheet_names.sort(key=lambda x: (x.lower() != 'summary', x))  # 'Summary' first, then the rest alphabetically
+sheet = st.sidebar.selectbox("Select a sheet:", options=sheet_names)
+
+# Display data table
+st.dataframe(data[sheet])
 
 # Display data table
 if sheet.lower() == 'summary':
