@@ -56,28 +56,27 @@ if sheet.lower() != 'summary':
     st.write(data[sheet].columns.tolist())
 
 if sheet.lower() != 'summary':
-    # Adjust these column names based on what is actually available
-    date_column = 'Date'
-    long_column = 'Long'
-    short_column = 'Short'
-    net_position_column = 'Net Position'  # Change this if the actual name is different
+    chart_data = data[sheet].head(20)  # Adjust this to head() or tail() based on your needs
+    
+    # Ensure 'Date' is parsed for plotting
+    chart_data['Date'] = pd.to_datetime(chart_data['Date'])
 
-    if {date_column, long_column, short_column, net_position_column}.issubset(data[sheet].columns):
-        chart_data = data[sheet].head(20)  # or .tail(20) for the most recent data
-        
-        # Chart 1: Long, Short, and Net Positions
-        fig = go.Figure()
-        fig.add_trace(go.Scatter(x=chart_data[date_column], y=chart_data[long_column], mode='lines', name='Long'))
-        fig.add_trace(go.Scatter(x=chart_data[date_column], y=chart_data[short_column], mode='lines', name='Short'))
-        fig.add_trace(go.Scatter(x=chart_data[date_column], y=chart_data[net_position_column], mode='lines', name='Net Position'))
-        st.plotly_chart(fig, use_container_width=True)
+    # Dynamically construct the Net Position column name based on the sheet name
+    net_position_column = f'{sheet} Net Positions'
 
-        # Chart 2: Net Position and its 13-week Moving Average
-        chart_data['13w MA'] = chart_data[net_position_column].rolling(window=13, min_periods=1).mean()
-        fig2 = go.Figure()
-        fig2.add_trace(go.Scatter(x=chart_data[date_column], y=chart_data[net_position_column], mode='lines', name='Net Position'))
-        fig2.add_trace(go.Scatter(x=chart_data[date_column], y=chart_data['13w MA'], mode='lines+markers', name='13w MA', line=dict(dash='dot')))
-        st.plotly_chart(fig2, use_container_width=True)
-    else:
-        st.error("Required columns for plotting are not found in the selected sheet.")
+    # Chart 1: Long, Short, and Net Positions
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data['Long'], mode='lines', name='Long'))
+    fig.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data['Short'], mode='lines', name='Short'))
+    fig.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data[net_position_column], mode='lines', name=net_position_column))
+    st.plotly_chart(fig, use_container_width=True)
+
+    # Chart 2: Net Position and its 13-week Moving Average
+    chart_data[net_position_column] = pd.to_numeric(chart_data[net_position_column], errors='coerce')
+    chart_data['13w MA'] = chart_data[net_position_column].rolling(window=13, min_periods=1).mean()
+    fig2 = go.Figure()
+    fig2.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data[net_position_column], mode='lines', name=net_position_column))
+    fig2.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data['13w MA'], mode='lines+markers', name='13w MA', line=dict(dash='dot')))
+    st.plotly_chart(fig2, use_container_width=True)
+
 
