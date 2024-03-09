@@ -30,7 +30,7 @@ def clean_and_format_data(sheet_data):
     return formatted_sheet
 
 # Read data from Dropbox
-@st.cache_data(show_spinner=False)
+@st.cache(allow_output_mutation=True)
 def load_data():
     url = "https://www.dropbox.com/scl/fi/c50v70ob66syx58vtc028/COT-Report.xlsx?rlkey=3fu2xoqsln3gaj084hw0rfcw0&dl=1"
     xls = pd.ExcelFile(url, engine='openpyxl')
@@ -48,35 +48,26 @@ sheet = st.sidebar.selectbox("Select a sheet:", options=sheet_names)
 
 # Display data table for the selected sheet with formatting applied
 st.dataframe(data[sheet])
-# Assuming all other code up to dataframe display remains unchanged.
 
-# Display available columns for the selected sheet
+
+
+
+# Display interactive charts for selected sheet, excluding 'Summary'
 if sheet.lower() != 'summary':
-    st.write("Available columns in the selected sheet:")
-    st.write(data[sheet].columns.tolist())
+    # Chart 1: Long, Short, and Net Positions
+    chart_data = data[sheet].tail(20)
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data['Long'], mode='lines', name='Long'))
+    fig.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data['Short'], mode='lines', name='Short'))
+    fig.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data['Net Position'], mode='lines', name='Net Position'))
+    st.plotly_chart(fig, use_container_width=True)
 
-if sheet.lower() != 'summary':
-    chart_data = data[sheet].head(20)  # Adjust this to head() or tail() based on your needs
-
-    # Construct the Net Position column name dynamically and trim any surrounding whitespace
-    net_position_column = f'{sheet.strip()} Net Positions'
-
-    # Check if the constructed column name exists in the DataFrame
-    if net_position_column not in chart_data.columns:
-        st.error(f"Expected column '{net_position_column}' not found in data. Available columns: {chart_data.columns.tolist()}")
-    else:
-        # Continue with plotting if the column exists
-        fig = go.Figure()
-        fig.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data['Long'], mode='lines', name='Long'))
-        fig.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data['Short'], mode='lines', name='Short'))
-        fig.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data[net_position_column], mode='lines', name=net_position_column))
-        st.plotly_chart(fig, use_container_width=True)
-
-        chart_data['13w MA'] = chart_data[net_position_column].rolling(window=13, min_periods=1).mean()
-        fig2 = go.Figure()
-        fig2.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data[net_position_column], mode='lines', name=net_position_column))
-        fig2.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data['13w MA'], mode='lines+markers', name='13w MA', line=dict(dash='dot')))
-        st.plotly_chart(fig2, use_container_width=True)
-
+    # Chart 2: Net Position and its 13-week Moving Average
+    chart_data['Net Position'] = pd.to_numeric(chart_data['Net Position'], errors='coerce')  # Ensure numeric for MA calculation
+    chart_data['MA'] = chart_data['Net Position'].rolling(window=13).mean()
+    fig2 = go.Figure()
+    fig2.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data['Net Position'], mode='lines', name='Net Position'))
+    fig2.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data['MA'], mode='lines+markers', name='13w MA', line=dict(dash='dot')))
+    st.plotly_chart(fig2, use_container_width=True)
 
 
