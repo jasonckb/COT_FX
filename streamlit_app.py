@@ -5,10 +5,12 @@ import openpyxl
 
 # Function to format percentage columns
 def format_percentage_columns(sheet_data):
-    for col in sheet_data.columns:
-        if '%' in col:  # Identify columns containing '%'
-            sheet_data[col] = pd.to_numeric(sheet_data[col], errors='coerce').apply(lambda x: f'{x:.2%}')
-    return sheet_data
+    formatted_sheet = sheet_data.copy()
+    for col in formatted_sheet.columns:
+        # Check if column header indicates a percentage value
+        if "%" in col:
+            formatted_sheet[col] = formatted_sheet[col].apply(lambda x: f"{x:.2%}" if pd.notnull(x) else x)
+    return formatted_sheet
 
 # Read data from Dropbox and apply formatting
 @st.cache(allow_output_mutation=True)
@@ -16,8 +18,8 @@ def load_data():
     url = "https://www.dropbox.com/scl/fi/fj9ovd8bn7c6ntbp0i0uw/COT-Report.xlsx?rlkey=9ag1xpfm8v1wvkg1xqm0m2bun&dl=1"
     all_sheets_data = pd.read_excel(url, sheet_name=None, engine='openpyxl')
     
-    for sheet_name in all_sheets_data:
-        all_sheets_data[sheet_name] = format_percentage_columns(all_sheets_data[sheet_name])
+    for sheet_name, sheet_data in all_sheets_data.items():
+        all_sheets_data[sheet_name] = format_percentage_columns(sheet_data)
 
     return all_sheets_data
 
@@ -27,9 +29,8 @@ data = load_data()
 sheet_names = list(data.keys())  # Maintain the order of sheets
 sheet = st.sidebar.selectbox("Select a sheet:", options=sheet_names)
 
-# Display data table for the selected sheet
-if sheet in data:
-    st.dataframe(data[sheet])
+# Display data table for the selected sheet with percentage formatting applied
+st.dataframe(data[sheet])
 
 # Display interactive charts for selected sheet, excluding 'Summary'
 if sheet.lower() != 'summary':
