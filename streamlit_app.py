@@ -7,20 +7,15 @@ import openpyxl
 def clean_and_format_data(sheet_data):
     formatted_sheet = sheet_data.copy()
 
-    # Identify numeric columns
-    numeric_columns = formatted_sheet.select_dtypes(include=['int64', 'float64']).columns
-
     # Remove commas for numeric columns and parentheses for negative numbers
-    formatted_sheet[numeric_columns] = formatted_sheet[numeric_columns].replace({'\,' : '', '\(': '-', '\)': ''}, regex=True)
+    formatted_sheet = formatted_sheet.replace({'\,' : '', '\(': '-', '\)': ''}, regex=True)
 
-    for col in formatted_sheet.columns:
-        if formatted_sheet[col].dtype != 'object':  # Skip the conversion for non-numeric columns
-            try:
-                # Attempt to convert to numeric, errors='coerce' will replace non-numeric values with NaN
-                formatted_sheet[col] = pd.to_numeric(formatted_sheet[col], errors='coerce')
-            except ValueError:
-                # If the column cannot be converted to numeric, likely a string, skip it
-                continue
+    # Convert '% Long' and '% Short' columns to numeric
+    if '% Long' in formatted_sheet.columns:
+        formatted_sheet['% Long'] = pd.to_numeric(formatted_sheet['% Long'], errors='coerce')
+
+    if '% Short' in formatted_sheet.columns:
+        formatted_sheet['% Short'] = pd.to_numeric(formatted_sheet['% Short'], errors='coerce')
 
     # Format '% Long' and '% Short' columns
     if '% Long' in formatted_sheet.columns:
@@ -31,9 +26,10 @@ def clean_and_format_data(sheet_data):
 
     # Parse the 'Date' column if it exists
     if 'Date' in formatted_sheet.columns:
-        formatted_sheet['Date'] = pd.to_datetime(formatted_sheet['Date'], dayfirst=True, errors='coerce').dt.date
+        formatted_sheet['Date'] = pd.to_datetime(formatted_sheet['Date'], format='%d/%m/%Y', errors='coerce').dt.date
 
     return formatted_sheet
+
 
 
 
