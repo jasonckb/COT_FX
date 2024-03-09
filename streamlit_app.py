@@ -22,17 +22,18 @@ def clean_and_format_data(sheet_data):
                 # If the column cannot be converted to numeric, likely a string, skip it
                 continue
 
-    # Format percentage columns after numeric conversion
+    # Format percentage columns
     for col in formatted_sheet.columns:
         # Identify columns that should be formatted as percentages
         if isinstance(col, str) and col.strip().endswith('%'):
-            formatted_sheet[col] = formatted_sheet[col].astype(float) / 100
+            formatted_sheet[col] = formatted_sheet[col].apply(lambda x: '{:.2%}'.format(x))
 
     # Parse the 'Date' column if it exists
     if 'Date' in formatted_sheet.columns:
-        formatted_sheet['Date'] = pd.to_datetime(formatted_sheet['Date'], dayfirst=True, errors='coerce')
+        formatted_sheet['Date'] = pd.to_datetime(formatted_sheet['Date'], dayfirst=True, errors='coerce').dt.date
 
     return formatted_sheet
+
 
 # Read data from Dropbox
 @st.cache_data(show_spinner=False)
