@@ -19,17 +19,16 @@ def clean_and_format_data(sheet_data):
 
     # Format '% Long' and '% Short' columns
     if '% Long' in formatted_sheet.columns:
-        formatted_sheet['% Long'] = formatted_sheet['% Long'].apply(lambda x: '{:.1%}'.format(x / 100))
+        formatted_sheet['% Long'] = formatted_sheet['% Long'].apply(lambda x: '{:.1%}'.format(x ))
 
     if '% Short' in formatted_sheet.columns:
-        formatted_sheet['% Short'] = formatted_sheet['% Short'].apply(lambda x: '{:.1%}'.format(x / 100))
+        formatted_sheet['% Short'] = formatted_sheet['% Short'].apply(lambda x: '{:.1%}'.format(x))
 
     # Parse the 'Date' column if it exists
     if 'Date' in formatted_sheet.columns:
         formatted_sheet['Date'] = pd.to_datetime(formatted_sheet['Date'], format='%d/%m/%Y', errors='coerce').dt.date
 
     return formatted_sheet
-
 
 
 
