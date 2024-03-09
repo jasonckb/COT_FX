@@ -7,15 +7,16 @@ import openpyxl
 def clean_and_format_data(sheet_data):
     formatted_sheet = sheet_data.copy()
     # Remove commas for numeric columns and parentheses for negative numbers
-    formatted_sheet = formatted_sheet.replace({'\,': '', '\(': '-', '\)': ''}, regex=True)
-    
+    formatted_sheet = formatted_sheet.replace({'\,' : '', '\(': '-', '\)': ''}, regex=True)
+
     for col in formatted_sheet.columns:
-        try:
-            # Attempt to convert to numeric, errors='coerce' will replace non-numeric values with NaN
-            formatted_sheet[col] = pd.to_numeric(formatted_sheet[col], errors='coerce')
-        except ValueError:
-            # If the column cannot be converted to numeric, likely a string, skip it
-            continue
+        if formatted_sheet[col].dtype != 'object':  # Skip the conversion for non-numeric columns
+            try:
+                # Attempt to convert to numeric, errors='coerce' will replace non-numeric values with NaN
+                formatted_sheet[col] = pd.to_numeric(formatted_sheet[col], errors='coerce')
+            except ValueError:
+                # If the column cannot be converted to numeric, likely a string, skip it
+                continue
 
     # Format percentage columns after numeric conversion
     for col in formatted_sheet.columns:
@@ -28,6 +29,7 @@ def clean_and_format_data(sheet_data):
         formatted_sheet['Date'] = pd.to_datetime(formatted_sheet['Date'], dayfirst=True, errors='coerce')
 
     return formatted_sheet
+
 
 # Read data from Dropbox
 @st.cache_data(show_spinner=False)
