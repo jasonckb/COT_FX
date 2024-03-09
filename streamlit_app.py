@@ -30,7 +30,7 @@ def clean_and_format_data(sheet_data):
     return formatted_sheet
 
 # Read data from Dropbox
-@st.cache(allow_output_mutation=True)
+@st.cache_data(show_spinner=False)
 def load_data():
     url = "https://www.dropbox.com/scl/fi/c50v70ob66syx58vtc028/COT-Report.xlsx?rlkey=3fu2xoqsln3gaj084hw0rfcw0&dl=1"
     xls = pd.ExcelFile(url, engine='openpyxl')
