@@ -71,5 +71,5 @@ if sheet.lower() != 'summary':
     chart_data['13w MA'] = chart_data[net_position_column].rolling(window=13, min_periods=1).mean()
     fig2 = go.Figure()
     fig2.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data[net_position_column], mode='lines', name=net_position_column, line=dict(color='darkgray')))
-    fig2.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data['13 Week MA'], mode='lines+markers', name='13w MA', line=dict(dash='dot', color='black')))
+    fig2.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data['13w MA'], mode='lines+markers', name='13w MA', line=dict(dash='dot', color='black')))
     st.plotly_chart(fig2, use_container_width=True)
