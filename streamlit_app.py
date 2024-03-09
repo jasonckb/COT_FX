@@ -3,17 +3,21 @@ import pandas as pd
 import plotly.graph_objects as go
 import openpyxl
 
-# Helper function to format percentage columns
-def format_percentage_columns(sheet_data):
+# Helper function to format percentage columns and clean numeric data
+def clean_and_format_data(sheet_data):
     formatted_sheet = sheet_data.copy()
     for col in formatted_sheet.columns:
-        # Check if '%' is in the column name (more flexible than endswith)
-        if isinstance(col, str) and '%' in col:
-            # Remove extra whitespace and format as percentage
-            formatted_sheet[col.strip()] = pd.to_numeric(formatted_sheet[col], errors='coerce').apply(
-                lambda x: f"{x:.2%}" if pd.notnull(x) else x)
-    return formatted_sheet
+        if col.startswith('%'):  # If the column name starts with '%'
+            formatted_sheet[col] = formatted_sheet[col].str.rstrip('%').astype(float) / 100
+        else:
+            # Remove commas for numeric columns and parenthesis for negative numbers
+            formatted_sheet[col] = formatted_sheet[col].replace({'\,': '', '\(': '-', '\)': ''}, regex=True)
+            # Convert to numeric, errors='coerce' will replace non-numeric values with NaN
+            formatted_sheet[col] = pd.to_numeric(formatted_sheet[col], errors='coerce')
 
+    # Parse the 'Date' column
+    formatted_sheet['Date'] = pd.to_datetime(formatted_sheet['Date'], dayfirst=True, errors='coerce')
+    return formatted_sheet
 
 # Read data from Dropbox
 @st.cache(allow_output_mutation=True)
@@ -22,10 +26,8 @@ def load_data():
     xls = pd.ExcelFile(url, engine='openpyxl')
     all_sheets_data = {}
     for sheet_name in xls.sheet_names:
-        # Use the first row as header by default, and manually skip for 'Summary' if necessary
-        header_row = 0 #if sheet_name != "Summary" else 1
-        sheet_data = pd.read_excel(xls, sheet_name=sheet_name, header=header_row)
-        all_sheets_data[sheet_name] = format_percentage_columns(sheet_data)
+        sheet_data = pd.read_excel(xls, sheet_name=sheet_name)
+        all_sheets_data[sheet_name] = clean_and_format_data(sheet_data)
     return all_sheets_data
 
 data = load_data()
@@ -34,7 +36,7 @@ data = load_data()
 sheet_names = list(data.keys())  # Maintain the order of sheets
 sheet = st.sidebar.selectbox("Select a sheet:", options=sheet_names)
 
-# Display data table for the selected sheet with percentage formatting applied
+# Display data table for the selected sheet with formatting applied
 st.dataframe(data[sheet])
 
 # Rest of your Streamlit code...
