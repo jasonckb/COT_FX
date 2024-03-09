@@ -10,23 +10,25 @@ def clean_and_format_data(sheet_data):
     # Remove commas for numeric columns and parentheses for negative numbers
     formatted_sheet = formatted_sheet.replace({'\,' : '', '\(': '-', '\)': ''}, regex=True)
 
-    # Convert '% Long' and '% Short' columns to numeric, assuming they are like '60%' and should become 60 (not 0.6)
+    # Convert '% Long' and '% Short' columns to numeric
     if '% Long' in formatted_sheet.columns:
-        formatted_sheet['% Long'] = formatted_sheet['% Long'].str.rstrip('%').astype('float') / 100
+        formatted_sheet['% Long'] = pd.to_numeric(formatted_sheet['% Long'], errors='coerce')
 
     if '% Short' in formatted_sheet.columns:
-        formatted_sheet['% Short'] = formatted_sheet['% Short'].str.rstrip('%').astype('float') / 100
+        formatted_sheet['% Short'] = pd.to_numeric(formatted_sheet['% Short'], errors='coerce')
 
-    # Since now they are properly in decimal form representing percentages, no further formatting is required
-    # If you need them in string format for some reason, multiply by 100 and append '%'
-    # However, it's usually best to keep them as numeric for any calculations and only format them when displaying
+    # Format '% Long' and '% Short' columns
+    if '% Long' in formatted_sheet.columns:
+        formatted_sheet['% Long'] = formatted_sheet['% Long'].apply(lambda x: '{:.1%}'.format(x *100))
+
+    if '% Short' in formatted_sheet.columns:
+        formatted_sheet['% Short'] = formatted_sheet['% Short'].apply(lambda x: '{:.1%}'.format(x*100))
 
     # Parse the 'Date' column if it exists
     if 'Date' in formatted_sheet.columns:
         formatted_sheet['Date'] = pd.to_datetime(formatted_sheet['Date'], format='%d/%m/%Y', errors='coerce').dt.date
 
     return formatted_sheet
-
 
 
 
