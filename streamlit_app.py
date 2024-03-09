@@ -35,12 +35,14 @@ def clean_and_format_data(sheet_data):
 
 # Read data from Dropbox
 @st.cache_data(show_spinner=False)
+# Inside your load_data function:
 def load_data():
     url = "https://www.dropbox.com/scl/fi/c50v70ob66syx58vtc028/COT-Report.xlsx?rlkey=3fu2xoqsln3gaj084hw0rfcw0&dl=1"
     xls = pd.ExcelFile(url, engine='openpyxl')
     all_sheets_data = {}
     for sheet_name in xls.sheet_names:
-        sheet_data = pd.read_excel(xls, sheet_name=sheet_name, header=None)  # Specify that there is no header
+        # Ensuring that the first row is used as header
+        sheet_data = pd.read_excel(xls, sheet_name=sheet_name, header=0)  
         all_sheets_data[sheet_name] = clean_and_format_data(sheet_data)
     return all_sheets_data
 
@@ -56,17 +58,16 @@ st.dataframe(data[sheet])
 
 
 if sheet.lower() != 'summary':
-    chart_data = data[sheet].head(20)  # or use .tail(20) as needed
+    chart_data = data[sheet].head(20)
 
-    # Correctly building the dynamic column name based on the sheet name
-    # It seems there's no space between 'SP' and '500' in your actual data.
-    # Adjust this logic based on how your sheet names map to the net positions column names.
-    net_position_column = f"{sheet.replace(' ', '')} Net Positions" if ' ' in sheet else f"{sheet} Net Positions"
+    # Direct usage of the column name without reconstruction
+    net_position_column = 'SP500 Net Positions'
 
-    # Verify the column exists before proceeding
+    # Proceed with plotting if the column exists
     if net_position_column not in chart_data.columns:
         st.error(f"Expected column '{net_position_column}' not found. Available columns: {chart_data.columns.tolist()}")
     else:
+
         # Proceed with plotting if the column exists
         fig = go.Figure()
         fig.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data['Long'], mode='lines', name='Long'))
