@@ -3,35 +3,50 @@ import pandas as pd
 import plotly.graph_objects as go
 import openpyxl  # Explicit import for clarity
 
+# Function to format the dataframe for display
+def format_dataframe(df, percentage_columns):
+    formatted_df = df.copy()
+    for col in percentage_columns:
+        formatted_df[col] = pd.to_numeric(formatted_df[col], errors='coerce').apply(lambda x: f'{x:.2%}')
+    return formatted_df
+
 # Read data from Dropbox and apply formatting
 @st.cache
 def load_data():
     url = "https://www.dropbox.com/scl/fi/fj9ovd8bn7c6ntbp0i0uw/COT-Report.xlsx?rlkey=9ag1xpfm8v1wvkg1xqm0m2bun&dl=1"
     data = pd.read_excel(url, sheet_name=None, engine='openpyxl')
-    
-    # Format all numeric data as percentages
+
+    # Determine percentage columns for each sheet
+    percentage_columns = {
+        sheet_name: [col for col in sheet_data.columns if '%' in col or sheet_data[col].dtype in ['float64', 'float32']]
+        for sheet_name, sheet_data in data.items()
+    }
+
+    # Format each sheet appropriately
     for sheet_name, sheet_data in data.items():
-        for col in sheet_data.select_dtypes(include=['float64']).columns:
-            sheet_data[col] = sheet_data[col].apply(lambda x: f'{x:.2%}')
-    
+        if sheet_name.lower() == 'summary':
+            # Create custom header by merging the first row for the 'Summary' sheet
+            merged_header = ' '.join(sheet_data.iloc[0].dropna().astype(str))
+            sheet_data.columns = [merged_header] + sheet_data.columns.tolist()[1:]
+            data[sheet_name] = sheet_data.iloc[1:]
+        # Apply percentage formatting to specified columns
+        data[sheet_name] = format_dataframe(sheet_data, percentage_columns[sheet_name])
+
     return data
 
 data = load_data()
 
 # Sidebar for sheet selection
-sheet = st.sidebar.selectbox("Select a sheet:", options=['Summary'] + [s for s in data.keys() if s != 'Summary'])
+sheet = st.sidebar.selectbox("Select a sheet:", options=['Summary'] + [s for s in data.keys() if s.lower() != 'summary'])
 
 # Display data table
-if sheet == 'Summary':
-    # Apply specific formatting for 'Summary' sheet
-    st.dataframe(data[sheet].style.set_properties(**{'text-align': 'left'}), width=None, height=None)
+if sheet.lower() == 'summary':
+    # Display the 'Summary' sheet with merged header and formatted percentages
+    st.write(data[sheet].columns[0])  # Write out the merged header
+    st.dataframe(data[sheet].iloc[:, 1:])  # Display the rest of the dataframe excluding the merged header
 else:
-    # Display data for other sheets normally
+    # Display data for other sheets with percentage formatting
     st.dataframe(data[sheet])
-
-# Dashboard and plotting for the selected asset
-if sheet != 'Summary':
-    st.header(f"Dashboard for {sheet}")
 
     # Chart 1: Long, Short, and Net Positions
     # Convert percentage strings back to floats for plotting
