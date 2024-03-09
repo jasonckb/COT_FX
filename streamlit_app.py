@@ -3,20 +3,30 @@ import pandas as pd
 import plotly.graph_objects as go
 import openpyxl
 
-# Helper function to format percentage columns and clean numeric data
+# Helper function to clean and format data
 def clean_and_format_data(sheet_data):
     formatted_sheet = sheet_data.copy()
+    # Remove commas for numeric columns and parentheses for negative numbers
+    formatted_sheet = formatted_sheet.replace({'\,': '', '\(': '-', '\)': ''}, regex=True)
+    
     for col in formatted_sheet.columns:
-        if col.startswith('%'):  # If the column name starts with '%'
-            formatted_sheet[col] = formatted_sheet[col].str.rstrip('%').astype(float) / 100
-        else:
-            # Remove commas for numeric columns and parenthesis for negative numbers
-            formatted_sheet[col] = formatted_sheet[col].replace({'\,': '', '\(': '-', '\)': ''}, regex=True)
-            # Convert to numeric, errors='coerce' will replace non-numeric values with NaN
+        try:
+            # Attempt to convert to numeric, errors='coerce' will replace non-numeric values with NaN
             formatted_sheet[col] = pd.to_numeric(formatted_sheet[col], errors='coerce')
+        except ValueError:
+            # If the column cannot be converted to numeric, likely a string, skip it
+            continue
 
-    # Parse the 'Date' column
-    formatted_sheet['Date'] = pd.to_datetime(formatted_sheet['Date'], dayfirst=True, errors='coerce')
+    # Format percentage columns after numeric conversion
+    for col in formatted_sheet.columns:
+        # Identify columns that should be formatted as percentages
+        if isinstance(col, str) and col.strip().endswith('%'):
+            formatted_sheet[col] = formatted_sheet[col].astype(float) / 100
+
+    # Parse the 'Date' column if it exists
+    if 'Date' in formatted_sheet.columns:
+        formatted_sheet['Date'] = pd.to_datetime(formatted_sheet['Date'], dayfirst=True, errors='coerce')
+
     return formatted_sheet
 
 # Read data from Dropbox
@@ -39,7 +49,8 @@ sheet = st.sidebar.selectbox("Select a sheet:", options=sheet_names)
 # Display data table for the selected sheet with formatting applied
 st.dataframe(data[sheet])
 
-# Rest of your Streamlit code...
+# The rest of the code for plotting charts goes here
+
 
 
 # Display interactive charts for selected sheet, excluding 'Summary'
