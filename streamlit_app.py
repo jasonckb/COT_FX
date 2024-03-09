@@ -36,9 +36,13 @@ def load_data():
     xls = pd.ExcelFile(url, engine='openpyxl')
     all_sheets_data = {}
     for sheet_name in xls.sheet_names:
-        sheet_data = pd.read_excel(xls, sheet_name=sheet_name)
+        sheet_data = pd.read_excel(xls, sheet_name=sheet_name, header=None)  # Specify that there is no header
+        sheet_data.columns = sheet_data.iloc[0]  # Assign the first row as the header
+        sheet_data = sheet_data[1:]  # Remove the first row from data
         all_sheets_data[sheet_name] = clean_and_format_data(sheet_data)
     return all_sheets_data
+
+
 
 data = load_data()
 
