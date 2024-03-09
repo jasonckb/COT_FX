@@ -8,8 +8,9 @@ def format_percentage_columns(sheet_data):
     formatted_sheet = sheet_data.copy()
     for col in formatted_sheet.columns:
         # Check if column header indicates a percentage value
-        if "%" in col:
-            formatted_sheet[col] = formatted_sheet[col].apply(lambda x: f"{x:.2%}" if pd.notnull(x) else x)
+        # Stripping whitespace to ensure correct identification
+        if "%" in col.strip():
+            formatted_sheet[col] = formatted_sheet[col].apply(lambda x: "{:.2%}".format(x) if pd.notnull(x) else x)
     return formatted_sheet
 
 # Read data from Dropbox and apply formatting
