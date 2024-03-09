@@ -12,24 +12,24 @@ def format_dataframe(df, percentage_columns):
     return formatted_df
 
 # Read data from Dropbox and apply formatting
-@st.cache
 def load_data():
     url = "https://www.dropbox.com/scl/fi/fj9ovd8bn7c6ntbp0i0uw/COT-Report.xlsx?rlkey=9ag1xpfm8v1wvkg1xqm0m2bun&dl=1"
+    # Using `None` to get all sheets in the order they are in the Excel file
     data = pd.read_excel(url, sheet_name=None, engine='openpyxl')
     
-    # Format all numeric data as percentages
+    # Format all numeric data as percentages for relevant columns
+    percentage_cols = ['% Long', '% Short', 'Net Position']  # Adjust if there are more percentage columns
     for sheet_name, sheet_data in data.items():
-        for col in sheet_data.select_dtypes(include=['float64', 'float32']).columns:
-            # Assuming that all float columns need to be formatted as percentages
-            sheet_data[col] = sheet_data[col].apply(lambda x: f"{x:.2%}" if pd.notnull(x) else x)
+        if percentage_cols[0] in sheet_data.columns:  # Check if percentage columns exist in the sheet
+            for col in percentage_cols:
+                sheet_data[col] = sheet_data[col].apply(lambda x: f"{x:.2%}" if pd.notnull(x) else x)
     
     return data
 
 data = load_data()
 
 # Sidebar for sheet selection
-sheet_names = list(data.keys())
-sheet_names.sort(key=lambda x: (x.lower() != 'summary', x))  # 'Summary' first, then the rest alphabetically
+sheet_names = list(data.keys())  # This maintains the order of sheets as in the workbook
 sheet = st.sidebar.selectbox("Select a sheet:", options=sheet_names)
 
 # Display data table
