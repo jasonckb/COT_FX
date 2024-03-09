@@ -24,14 +24,14 @@ def clean_and_format_data(sheet_data):
 
     # Format '% Long' and '% Short' columns
     if '% Long' in formatted_sheet.columns:
-        formatted_sheet['% Long'] = formatted_sheet['% Long'].apply(lambda x: '{:.1%}'.format(x))
+        formatted_sheet['% Long'] = formatted_sheet['% Long'].apply(lambda x: '{:.1%}'.format(x / 100))
 
     if '% Short' in formatted_sheet.columns:
-        formatted_sheet['% Short'] = formatted_sheet['% Short'].apply(lambda x: '{:.1%}'.format(x))
+        formatted_sheet['% Short'] = formatted_sheet['% Short'].apply(lambda x: '{:.1%}'.format(x / 100))
 
     # Parse the 'Date' column if it exists
     if 'Date' in formatted_sheet.columns:
-        formatted_sheet['Date'] = pd.to_datetime(formatted_sheet['Date'], errors='coerce').dt.normalize()
+        formatted_sheet['Date'] = pd.to_datetime(formatted_sheet['Date'], dayfirst=True, errors='coerce').dt.date
 
     return formatted_sheet
 
