@@ -1,13 +1,20 @@
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
-import openpyxl
+import openpyxl  # Explicit import for clarity
 
-# Read data from Dropbox
+# Read data from Dropbox and apply formatting
 @st.cache
 def load_data():
     url = "https://www.dropbox.com/scl/fi/fj9ovd8bn7c6ntbp0i0uw/COT-Report.xlsx?rlkey=9ag1xpfm8v1wvkg1xqm0m2bun&dl=1"
-    return pd.read_excel(url, sheet_name=None)
+    data = pd.read_excel(url, sheet_name=None, engine='openpyxl')
+    
+    # Format all numeric data as percentages
+    for sheet_name, sheet_data in data.items():
+        for col in sheet_data.select_dtypes(include=['float64']).columns:
+            sheet_data[col] = sheet_data[col].apply(lambda x: f'{x:.2%}')
+    
+    return data
 
 data = load_data()
 
@@ -15,27 +22,27 @@ data = load_data()
 sheet = st.sidebar.selectbox("Select a sheet:", options=['Summary'] + [s for s in data.keys() if s != 'Summary'])
 
 # Display data table
-st.dataframe(data[sheet])
+if sheet == 'Summary':
+    # Apply specific formatting for 'Summary' sheet
+    st.dataframe(data[sheet].style.set_properties(**{'text-align': 'left'}), width=None, height=None)
+else:
+    # Display data for other sheets normally
+    st.dataframe(data[sheet])
 
-# Dashboard for the selected asset, excluding summary
+# Dashboard and plotting for the selected asset
 if sheet != 'Summary':
     st.header(f"Dashboard for {sheet}")
 
-    # Assuming you need to show headers in the first column of the dashboard
-    st.write("Headers:", data[sheet].columns.tolist())
-
-    # Example Placeholder for second column - modify as per your needs
-    st.write("Details or additional data could be shown here.")
-
     # Chart 1: Long, Short, and Net Positions
-    chart_data = data[sheet].tail(20)
+    # Convert percentage strings back to floats for plotting
+    chart_data = data[sheet].tail(20).apply(pd.to_numeric, errors='coerce')
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=chart_data.index, y=chart_data['Long'], mode='lines', name='Long'))
     fig.add_trace(go.Scatter(x=chart_data.index, y=chart_data['Short'], mode='lines', name='Short'))
     fig.add_trace(go.Scatter(x=chart_data.index, y=chart_data['Net Position'], mode='lines', name='Net Position'))
     st.plotly_chart(fig, use_container_width=True)
 
-    # Chart 2: Net Position and 13-week MA
+    # Chart 2: Net Position and its 13-week Moving Average
     chart_data['MA'] = chart_data['Net Position'].rolling(window=13).mean()
     fig2 = go.Figure()
     fig2.add_trace(go.Scatter(x=chart_data.index, y=chart_data['Net Position'], mode='lines', name='Net Position'))
