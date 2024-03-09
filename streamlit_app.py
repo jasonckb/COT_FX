@@ -58,7 +58,7 @@ else:
     if sheet.lower() != 'summary':
         try:
             # Chart 1: Long, Short, and Net Positions
-            chart_data = data[sheet].tail(20)
+            chart_data = data[sheet].head(20)
             fig = go.Figure()
             fig.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data['Long'], mode='lines', name='Long'))
             fig.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data['Short'], mode='lines', name='Short'))
