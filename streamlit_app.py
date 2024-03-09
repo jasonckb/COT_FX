@@ -6,8 +6,12 @@ import openpyxl
 # Helper function to clean and format data
 def clean_and_format_data(sheet_data):
     formatted_sheet = sheet_data.copy()
+
+    # Identify numeric columns
+    numeric_columns = formatted_sheet.select_dtypes(include=['int64', 'float64']).columns
+
     # Remove commas for numeric columns and parentheses for negative numbers
-    formatted_sheet = formatted_sheet.replace({'\,' : '', '\(': '-', '\)': ''}, regex=True)
+    formatted_sheet[numeric_columns] = formatted_sheet[numeric_columns].replace({'\,' : '', '\(': '-', '\)': ''}, regex=True)
 
     for col in formatted_sheet.columns:
         if formatted_sheet[col].dtype != 'object':  # Skip the conversion for non-numeric columns
@@ -30,7 +34,6 @@ def clean_and_format_data(sheet_data):
 
     return formatted_sheet
 
-
 # Read data from Dropbox
 @st.cache_data(show_spinner=False)
 def load_data():
@@ -39,11 +42,8 @@ def load_data():
     all_sheets_data = {}
     for sheet_name in xls.sheet_names:
         sheet_data = pd.read_excel(xls, sheet_name=sheet_name, header=None)  # Specify that there is no header
-        sheet_data.columns = sheet_data.iloc[0]  # Assign the first row as the header
-        sheet_data = sheet_data[1:]  # Remove the first row from data
         all_sheets_data[sheet_name] = clean_and_format_data(sheet_data)
     return all_sheets_data
-
 
 
 data = load_data()
