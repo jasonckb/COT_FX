@@ -61,7 +61,7 @@ if sheet.lower() != 'summary':
 
     # Chart 1: Long (blue), Short (red), and Net Positions (dark gray)
     fig = go.Figure()
-    fig.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data['Long'], mode='lines', name='Long', line=dict(color='blue', )))
+    fig.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data['Long'], mode='lines', name='Long', line=dict(color='blue' )))
     fig.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data['Short'], mode='lines', name='Short', line=dict(color='red')))
     net_position_column = f"{sheet.replace(' ', '')} Net Positions" if ' ' in sheet else f"{sheet} Net Positions"
     fig.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data[net_position_column], mode='lines', name=net_position_column, line=dict(color='darkgray', width=2)))
@@ -70,6 +70,6 @@ if sheet.lower() != 'summary':
     # Chart 2: Net Position (dark gray) and its 13-week Moving Average
     chart_data['13w MA'] = chart_data[net_position_column].rolling(window=13, min_periods=1).mean()
     fig2 = go.Figure()
-    fig2.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data[net_position_column], mode='lines', name=net_position_column, line=dict(color='black',width=2)))
+    fig2.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data[net_position_column], mode='lines', name=net_position_column, line=dict(color='black', width=2)))
     fig2.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data['13 Week MA'], mode='lines+markers', name='13w MA', line=dict(dash='dot', color='darkgray')))
     st.plotly_chart(fig2, use_container_width=True)
