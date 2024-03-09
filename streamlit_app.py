@@ -18,7 +18,7 @@ def load_data():
     data = pd.read_excel(url, sheet_name=None, engine='openpyxl')
     
     # Format all numeric data as percentages for relevant columns
-    percentage_cols = ['% Long', '% Short', 'Net Position']  # Adjust if there are more percentage columns
+    percentage_cols = ['% Long', '% Short']  # Adjust if there are more percentage columns
     for sheet_name, sheet_data in data.items():
         if percentage_cols[0] in sheet_data.columns:  # Check if percentage columns exist in the sheet
             for col in percentage_cols:
