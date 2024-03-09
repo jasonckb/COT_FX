@@ -20,7 +20,7 @@ def load_data():
     all_sheets_data = {}
     for sheet_name in xls.sheet_names:
         # Use the first row as header by default, and manually skip for 'Summary' if necessary
-        header_row = 1 if sheet_name != "Summary" else 1
+        header_row = 0 #if sheet_name != "Summary" else 1
         sheet_data = pd.read_excel(xls, sheet_name=sheet_name, header=header_row)
         all_sheets_data[sheet_name] = format_percentage_columns(sheet_data)
     return all_sheets_data
