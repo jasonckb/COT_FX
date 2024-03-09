@@ -57,26 +57,26 @@ if sheet.lower() != 'summary':
 
 if sheet.lower() != 'summary':
     chart_data = data[sheet].head(20)  # Adjust this to head() or tail() based on your needs
-    
-    # Ensure 'Date' is parsed for plotting
-    chart_data['Date'] = pd.to_datetime(chart_data['Date'])
 
-    # Dynamically construct the Net Position column name based on the sheet name
-    net_position_column = f'{sheet} Net Positions'
+    # Construct the Net Position column name dynamically and trim any surrounding whitespace
+    net_position_column = f'{sheet.strip()} Net Positions'
 
-    # Chart 1: Long, Short, and Net Positions
-    fig = go.Figure()
-    fig.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data['Long'], mode='lines', name='Long'))
-    fig.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data['Short'], mode='lines', name='Short'))
-    fig.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data[net_position_column], mode='lines', name=net_position_column))
-    st.plotly_chart(fig, use_container_width=True)
+    # Check if the constructed column name exists in the DataFrame
+    if net_position_column not in chart_data.columns:
+        st.error(f"Expected column '{net_position_column}' not found in data. Available columns: {chart_data.columns.tolist()}")
+    else:
+        # Continue with plotting if the column exists
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data['Long'], mode='lines', name='Long'))
+        fig.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data['Short'], mode='lines', name='Short'))
+        fig.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data[net_position_column], mode='lines', name=net_position_column))
+        st.plotly_chart(fig, use_container_width=True)
 
-    # Chart 2: Net Position and its 13-week Moving Average
-    chart_data[net_position_column] = pd.to_numeric(chart_data[net_position_column], errors='coerce')
-    chart_data['13w MA'] = chart_data[net_position_column].rolling(window=13, min_periods=1).mean()
-    fig2 = go.Figure()
-    fig2.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data[net_position_column], mode='lines', name=net_position_column))
-    fig2.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data['13w MA'], mode='lines+markers', name='13w MA', line=dict(dash='dot')))
-    st.plotly_chart(fig2, use_container_width=True)
+        chart_data['13w MA'] = chart_data[net_position_column].rolling(window=13, min_periods=1).mean()
+        fig2 = go.Figure()
+        fig2.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data[net_position_column], mode='lines', name=net_position_column))
+        fig2.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data['13w MA'], mode='lines+markers', name='13w MA', line=dict(dash='dot')))
+        st.plotly_chart(fig2, use_container_width=True)
+
 
 
