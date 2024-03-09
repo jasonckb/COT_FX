@@ -26,7 +26,7 @@ def load_data():
     for sheet_name, sheet_data in data.items():
         if sheet_name.lower() == 'summary':
             # Create custom header by merging the first row for the 'Summary' sheet
-            merged_header = ' '.join(sheet_data.iloc[0].dropna().astype(str))
+            #merged_header = ' '.join(sheet_data.iloc[0].dropna().astype(str))
             sheet_data.columns = [merged_header] + sheet_data.columns.tolist()[1:]
             data[sheet_name] = sheet_data.iloc[1:]
         # Apply percentage formatting to specified columns
