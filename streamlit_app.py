@@ -3,43 +3,28 @@ import pandas as pd
 import plotly.graph_objects as go
 import openpyxl  # Explicit import for clarity
 
-# Function to format the dataframe for display
-def format_dataframe(df):
-    formatted_df = df.copy()
-    for col in formatted_df.columns[1:]:  # Skip the first column
-        formatted_df[col] = pd.to_numeric(formatted_df[col], errors='coerce').apply(lambda x: f'{x:.2%}')
-    return formatted_df
-
 # Read data from Dropbox and apply formatting
 @st.cache
 def load_data():
     url = "https://www.dropbox.com/scl/fi/fj9ovd8bn7c6ntbp0i0uw/COT-Report.xlsx?rlkey=9ag1xpfm8v1wvkg1xqm0m2bun&dl=1"
     data = pd.read_excel(url, sheet_name=None, engine='openpyxl')
     
-    # Format the 'Summary' sheet differently from the rest
-    for sheet_name in data:
-        if sheet_name.lower() == 'summary':
-            # Format 'Summary' sheet and merge first row by creating a custom header
-            summary_df = data[sheet_name]
-            header = " ".join(summary_df.iloc[0].dropna().astype(str))
-            data[sheet_name] = summary_df[1:]  # Skip the first row as it's now in the header
-            data[sheet_name].columns = [header] + summary_df.columns.tolist()[1:]  # Add the merged header
-        else:
-            # Format other sheets with percentage values
-            data[sheet_name] = format_dataframe(data[sheet_name])
+    # Format all numeric data as percentages
+    for sheet_name, sheet_data in data.items():
+        for col in sheet_data.select_dtypes(include=['float64']).columns:
+            sheet_data[col] = sheet_data[col].apply(lambda x: f'{x:.2%}')
     
     return data
 
 data = load_data()
 
 # Sidebar for sheet selection
-sheet = st.sidebar.selectbox("Select a sheet:", options=['Summary'] + [s for s in data.keys() if s.lower() != 'summary'])
+sheet = st.sidebar.selectbox("Select a sheet:", options=['Summary'] + [s for s in data.keys() if s != 'Summary'])
 
 # Display data table
-if sheet.lower() == 'summary':
+if sheet == 'Summary':
     # Apply specific formatting for 'Summary' sheet
-    st.write(data[sheet].columns[0])  # Custom header
-    st.dataframe(data[sheet].iloc[:, 1:])  # Exclude the first column which is the custom header
+    st.dataframe(data[sheet].style.set_properties(**{'text-align': 'left'}), width=None, height=None)
 else:
     # Display data for other sheets normally
     st.dataframe(data[sheet])
