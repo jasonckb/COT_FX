@@ -3,41 +3,38 @@ import pandas as pd
 import plotly.graph_objects as go
 import openpyxl
 
-# Helper function to clean and format data
+
+# Helper function to format percentage columns and clean numeric data
 def clean_and_format_data(sheet_data):
+    # Make a copy of the dataframe to prevent changes to the original data
     formatted_sheet = sheet_data.copy()
-    # Remove commas for numeric columns and parentheses for negative numbers
-    formatted_sheet = formatted_sheet.replace({'\,': '', '\(': '-', '\)': ''}, regex=True)
-    
+
+    # Convert 'Date' column to datetime
+    formatted_sheet['Date'] = pd.to_datetime(formatted_sheet['Date'], errors='coerce')
+
     for col in formatted_sheet.columns:
-        try:
-            # Attempt to convert to numeric, errors='coerce' will replace non-numeric values with NaN
+        # Remove commas for thousands and convert to float
+        if formatted_sheet[col].dtype == 'object':
+            formatted_sheet[col] = formatted_sheet[col].replace({',': '', '\(': '-', '\)': ''}, regex=True)
             formatted_sheet[col] = pd.to_numeric(formatted_sheet[col], errors='coerce')
-        except ValueError:
-            # If the column cannot be converted to numeric, likely a string, skip it
-            continue
 
-    # Format percentage columns after numeric conversion
-    for col in formatted_sheet.columns:
-        # Identify columns that should be formatted as percentages
-        if isinstance(col, str) and col.strip().endswith('%'):
-            formatted_sheet[col] = formatted_sheet[col].astype(float) / 100
-
-    # Parse the 'Date' column if it exists
-    if 'Date' in formatted_sheet.columns:
-        formatted_sheet['Date'] = pd.to_datetime(formatted_sheet['Date'], dayfirst=True, errors='coerce')
+        # Format percentage columns
+        if '%' in col:
+            formatted_sheet[col] = formatted_sheet[col] / 100
 
     return formatted_sheet
 
 # Read data from Dropbox
 @st.cache(allow_output_mutation=True)
 def load_data():
-    url = "https://www.dropbox.com/scl/fi/c50v70ob66syx58vtc028/COT-Report.xlsx?rlkey=3fu2xoqsln3gaj084hw0rfcw0&dl=1"
-    xls = pd.ExcelFile(url, engine='openpyxl')
-    all_sheets_data = {}
-    for sheet_name in xls.sheet_names:
-        sheet_data = pd.read_excel(xls, sheet_name=sheet_name)
+    url = "YOUR_DROPBOX_LINK_HERE"  # Replace with your actual Dropbox link to the Excel file
+    # Read the Excel file
+    all_sheets_data = pd.read_excel(url, sheet_name=None, engine='openpyxl')
+    
+    # Clean and format all sheets data
+    for sheet_name, sheet_data in all_sheets_data.items():
         all_sheets_data[sheet_name] = clean_and_format_data(sheet_data)
+
     return all_sheets_data
 
 data = load_data()
@@ -46,29 +43,36 @@ data = load_data()
 sheet_names = list(data.keys())  # Maintain the order of sheets
 sheet = st.sidebar.selectbox("Select a sheet:", options=sheet_names)
 
-# Display data table for the selected sheet with formatting applied
+# Display the data table for the selected sheet with formatting applied
 st.dataframe(data[sheet])
-
-# The rest of the code for plotting charts goes here
-
-
 
 # Display interactive charts for selected sheet, excluding 'Summary'
 if sheet.lower() != 'summary':
-    # Chart 1: Long, Short, and Net Positions
+    # Extract the last 20 data points for charting
     chart_data = data[sheet].tail(20)
+
+    # Create Chart 1: Long, Short, and Net Positions
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data['Long'], mode='lines', name='Long'))
     fig.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data['Short'], mode='lines', name='Short'))
-    fig.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data['Net Position'], mode='lines', name='Net Position'))
+    fig.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data['Nasdaq 100 Net Positions'], mode='lines', name='Net Position'))
+
+    # Show Chart 1
     st.plotly_chart(fig, use_container_width=True)
 
-    # Chart 2: Net Position and its 13-week Moving Average
-    chart_data['Net Position'] = pd.to_numeric(chart_data['Net Position'], errors='coerce')  # Ensure numeric for MA calculation
-    chart_data['MA'] = chart_data['Net Position'].rolling(window=13).mean()
+    # Create Chart 2: Net Position with 13-week Moving Average
     fig2 = go.Figure()
-    fig2.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data['Net Position'], mode='lines', name='Net Position'))
-    fig2.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data['MA'], mode='lines+markers', name='13w MA', line=dict(dash='dot')))
+    fig2.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data['Nasdaq 100 Net Positions'], mode='lines', name='Net Position'))
+    fig2.add_trace(go.Scatter(
+        x=chart_data['Date'], 
+        y=chart_data['Nasdaq 100 Net Positions'].rolling(window=13, min_periods=1).mean(), 
+        mode='lines',
+        name='13w MA',
+        line=dict(dash='dot')
+    ))
+
+    # Show Chart 2
     st.plotly_chart(fig2, use_container_width=True)
+
 
 
