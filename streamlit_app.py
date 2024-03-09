@@ -4,6 +4,7 @@ import plotly.graph_objects as go
 import openpyxl  # Explicit import for clarity
 
 # Function to format the dataframe for display
+@st.cache_data(show_spinner=False)
 def format_dataframe(df, percentage_columns):
     formatted_df = df.copy()
     for col in percentage_columns:
