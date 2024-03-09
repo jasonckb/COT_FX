@@ -27,10 +27,6 @@ def clean_and_format_data(sheet_data):
     if 'Date' in formatted_sheet.columns:
         formatted_sheet['Date'] = pd.to_datetime(formatted_sheet['Date'], dayfirst=True, errors='coerce')
 
-    # Trim whitespace from column names and values
-    formatted_sheet.columns = formatted_sheet.columns.str.strip()
-    formatted_sheet = formatted_sheet.applymap(lambda x: x.strip() if isinstance(x, str) else x)
-
     return formatted_sheet
 
 # Read data from Dropbox
@@ -50,12 +46,28 @@ data = load_data()
 sheet_names = list(data.keys())  # Maintain the order of sheets
 sheet = st.sidebar.selectbox("Select a sheet:", options=sheet_names)
 
-# Print column names and data types for debugging
-st.write("Column names:")
-st.write(data[sheet].columns)
-st.write("Data types:")
-st.write(data[sheet].dtypes)
-
 # Display data table for the selected sheet with formatting applied
-st.table(data[sheet])
+st.dataframe(data[sheet])
+
+
+
+
+# Display interactive charts for selected sheet, excluding 'Summary'
+if sheet.lower() != 'summary':
+    # Chart 1: Long, Short, and Net Positions
+    chart_data = data[sheet].tail(20)
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data['Long'], mode='lines', name='Long'))
+    fig.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data['Short'], mode='lines', name='Short'))
+    fig.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data['Net Position'], mode='lines', name='Net Position'))
+    st.plotly_chart(fig, use_container_width=True)
+
+    # Chart 2: Net Position and its 13-week Moving Average
+    chart_data['Net Position'] = pd.to_numeric(chart_data['Net Position'], errors='coerce')  # Ensure numeric for MA calculation
+    chart_data['MA'] = chart_data['Net Position'].rolling(window=13).mean()
+    fig2 = go.Figure()
+    fig2.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data['Net Position'], mode='lines', name='Net Position'))
+    fig2.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data['MA'], mode='lines+markers', name='13w MA', line=dict(dash='dot')))
+    st.plotly_chart(fig2, use_container_width=True)
+
 
