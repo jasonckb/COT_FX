@@ -7,10 +7,13 @@ import openpyxl
 def format_percentage_columns(sheet_data):
     formatted_sheet = sheet_data.copy()
     for col in formatted_sheet.columns:
-        # Ensure the column name is a string before checking if it ends with '%'
-        if isinstance(col, str) and col.endswith('%'):
-            formatted_sheet[col] = pd.to_numeric(formatted_sheet[col], errors='coerce').apply(lambda x: f"{x:.2%}" if pd.notnull(x) else x)
+        # Check if '%' is in the column name (more flexible than endswith)
+        if isinstance(col, str) and '%' in col:
+            # Remove extra whitespace and format as percentage
+            formatted_sheet[col.strip()] = pd.to_numeric(formatted_sheet[col], errors='coerce').apply(
+                lambda x: f"{x:.2%}" if pd.notnull(x) else x)
     return formatted_sheet
+
 
 # Read data from Dropbox
 @st.cache(allow_output_mutation=True)
