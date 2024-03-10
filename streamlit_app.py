@@ -59,41 +59,6 @@ sheet = st.sidebar.selectbox("Select a sheet:", options=sheet_names)
 # Display data table for the selected sheet with formatting applied
 st.dataframe(data[sheet], width=None)
 
-# Display the table for "summary", but not for "fx_supply_demand_swing"
-if sheet.lower() != 'fx_supply_demand_swing':
-    st.dataframe(data[sheet], width=None)
-
-def get_latest_price(symbol):
-    try:
-        latest_price_data = yf.download(symbol, period="1d")
-        return latest_price_data['Close'].iloc[-1]
-    except Exception as e:
-        st.error(f"Error fetching data for {symbol}: {e}")
-        return None
-# Here you can put additional logic specific to 'fx_supply_demand_swing'
-if sheet.lower() == 'fx_supply_demand_swing':
-    
-    if st.sidebar.button('Refresh FX Rate'):
-        # Fetch and update latest prices
-        for idx, row in data[sheet].iterrows():
-            symbol = row['Symbol'].replace("/", "") + "=X"
-            data[sheet].at[idx, 'Latest Price'] = get_latest_price(symbol)
-
-    # Make sure 'Latest Price' exists before reordering columns
-    if 'Latest Price' not in data[sheet].columns:
-        data[sheet]['Latest Price'] = pd.NA
-
-    # Ensure the 'Latest Price' column is second
-    # First, get all columns excluding 'Symbol' and 'Latest Price'
-    other_cols = [col for col in data[sheet].columns if col not in ['Symbol', 'Latest Price']]
-    # Define new column order
-    new_cols = ['Symbol', 'Latest Price'] + other_cols
-    # Reorder the DataFrame
-    data[sheet] = data[sheet][new_cols]
-
-    st.table(data[sheet])
-    pass
-
 # Determine if the selected sheet should not display charts
 sheets_without_charts = ['summary', 'fx_supply_demand_swing']
 
@@ -140,3 +105,24 @@ def get_latest_price(symbol):
         st.error(f"Error fetching data for {symbol}: {e}")
         return None
 
+if sheet.lower() == 'fx_supply_demand_swing':
+    # Refresh button in the sidebar
+    if st.sidebar.button('Refresh FX Rate'):
+        # Fetch and update latest prices
+        for idx, row in data[sheet].iterrows():
+            symbol = row['Symbol'].replace("/", "") + "=X"
+            data[sheet].at[idx, 'Latest Price'] = get_latest_price(symbol)
+
+    # Make sure 'Latest Price' exists before reordering columns
+    if 'Latest Price' not in data[sheet].columns:
+        data[sheet]['Latest Price'] = pd.NA
+
+    # Ensure the 'Latest Price' column is second
+    # First, get all columns excluding 'Symbol' and 'Latest Price'
+    other_cols = [col for col in data[sheet].columns if col not in ['Symbol', 'Latest Price']]
+    # Define new column order
+    new_cols = ['Symbol', 'Latest Price'] + other_cols
+    # Reorder the DataFrame
+    data[sheet] = data[sheet][new_cols]
+
+    st.table(data[sheet])
