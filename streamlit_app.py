@@ -59,7 +59,7 @@ sheet = st.sidebar.selectbox("Select a sheet:", options=sheet_names)
 st.dataframe(data[sheet], width=None)
 
 # Plotting charts for the selected sheet if it is not 'summary'
-if sheet.lower() != 'summary' or 'FX_Supply_Demand_Swing':
+if sheet.lower() != 'summary' :
     chart_data = data[sheet].head(20)
     # Generate the dynamic column name for net positions
     net_position_column = f"{sheet.replace(' ', '')} Net Positions" if ' ' in sheet else f"{sheet} Net Positions"
