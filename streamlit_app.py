@@ -96,40 +96,25 @@ if sheet.lower() not in sheets_without_charts:
         fig2.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data['13w MA'], mode='lines+markers', name='13 Week MA', line=dict(dash='dot', color='darkgray')))
         st.plotly_chart(fig2, use_container_width=True)
 
-# Function to fetch the latest price from Yahoo Finance
+if sheet.lower() == 'fx_supply_demand_swing':
+    # Initialize the dashboard DataFrame with the 'Symbol' column from the data
+    dashboard_data = data[sheet][['Symbol']].copy()
+
+    # Add the latest price column to the dashboard
+    dashboard_data['Latest Price'] = dashboard_data['Symbol'].apply(lambda x: get_latest_price(x + "=X"))
+
+    # Include the setup level columns (assuming they are the next columns after 'Symbol')
+    setup_levels = data[sheet].columns[1:5]  # This gets the next four columns after 'Symbol'
+    dashboard_data = pd.concat([dashboard_data, data[sheet][setup_levels]], axis=1)
+
+    # Format the dashboard DataFrame: display latest prices and setup levels
+    st.table(dashboard_data)
+
 def get_latest_price(symbol):
     try:
-        data = yf.download(f"{symbol}=X", period="1d")
-        return data['Close'].iloc[-1]
+        # Fetching the latest price for the symbol
+        latest_price_data = yf.download(symbol, period="1d")
+        return latest_price_data['Close'].iloc[-1]
     except Exception as e:
         st.error(f"Error fetching data for {symbol}: {e}")
         return None
-
-# Load data from the 'FX_Supply_Demand_Swing' sheet
-data = pd.read_excel('path_to_your_excel_file.xlsx', sheet_name='FX_Supply_Demand_Swing')
-
-# Add a column for the latest price
-data['Latest Price'] = data['Symbol'].apply(get_latest_price)
-
-# Create a function to determine the row color based on the setup prices and the latest price
-def color_row(row):
-    long_setup_cols = [col for col in row.index if 'Long Setup' in col]
-    short_setup_cols = [col for col in row.index if 'Short Setup' in col]
-    
-    # Check if the latest price is within 0.1% of any long setup prices
-    for col in long_setup_cols:
-        if abs(row[col] - row['Latest Price']) / row['Latest Price'] < 0.001:
-            return 'background-color: green'
-    
-    # Check if the latest price is within 0.1% of any short setup prices
-    for col in short_setup_cols:
-        if abs(row[col] - row['Latest Price']) / row['Latest Price'] < 0.001:
-            return 'background-color: red'
-
-    return ''  # No color
-
-# Apply the coloring function to the DataFrame
-styled_data = data.style.apply(lambda row: color_row(row), axis=1)
-
-# Display the styled DataFrame as a table in Streamlit
-st.table(styled_data)
