@@ -110,14 +110,14 @@ def color_rows(df):
 
         # Check if the latest price is close to 0.1% of one of the long set up levels
         if row['Latest Price'] >= row['1st Long Setup'] * 0.999 and row['Latest Price'] <= row['1st Long Setup'] * 1.001:
-            colored_df.loc[idx, :] = 'background-color: green'
+            colored_df.loc[idx, :] = 'background-color:  #89ef97'
         elif row['Latest Price'] >= row['2nd Long Setup'] * 0.999 and row['Latest Price'] <= row['2nd Long Setup'] * 1.001:
-            colored_df.loc[idx, :] = 'background-color: green'
+            colored_df.loc[idx, :] = 'background-color:  #89ef97'
         # Check if the latest price is close to 0.1% of one of the short set up levels
         elif row['Latest Price'] >= row['1st short Setup'] * 0.999 and row['Latest Price'] <= row['1st short Setup'] * 1.001:
-            colored_df.loc[idx, :] = 'background-color: red'
+            colored_df.loc[idx, :] = 'background-color: #efb4bd'
         elif row['Latest Price'] >= row['2nd short Setup'] * 0.999 and row['Latest Price'] <= row['2nd short Setup'] * 1.001:
-            colored_df.loc[idx, :] = 'background-color: red'
+            colored_df.loc[idx, :] = 'background-color: #efb4bd'
 
     return colored_df
 
