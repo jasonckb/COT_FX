@@ -126,5 +126,9 @@ if sheet.lower() == 'fx_supply_demand_swing':
     # Reorder the DataFrame
     data[sheet] = data[sheet][new_cols]
 
-    # Display the full length table
-    st.dataframe(data[sheet])
+    # Convert the DataFrame to an HTML table
+    html_table = data[sheet].to_html(index=False)
+
+    # Display the full length table without scrolling
+    st.write(html_table, unsafe_allow_html=True)
+
