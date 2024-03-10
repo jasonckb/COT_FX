@@ -106,16 +106,17 @@ def get_latest_price(symbol):
         st.error(f"Error fetching data for {symbol}: {e}")
         return None
 
-# Your main app logic
-# Assuming 'data' is your main DataFrame and 'sheet' represents the active sheet name
-if 'fx_supply_demand_swing' == sheet.lower():
+# Assume 'data' is your main DataFrame and 'sheet' represents the active sheet name
+if sheet.lower() == 'fx_supply_demand_swing':
     # Sidebar button to refresh FX rates
     if st.sidebar.button('Refresh FX Rate'):
-        # Refresh the latest prices for the 'FX_Supply_Demand_Swing' sheet
-        for idx, symbol in enumerate(data[sheet]['Symbol']):
-            yahoo_symbol = f"{symbol}=X"
-            data[sheet].at[idx, 'Latest Price'] = get_latest_price(yahoo_symbol)
+        # Fetch the latest prices for each symbol and update the 'Latest Price' column
+        data[sheet]['Latest Price'] = data[sheet]['Symbol'].apply(lambda x: get_latest_price(x.replace("/", "") + "=X"))
 
-    # Assuming setup levels are the next four columns after 'Symbol'
-    # Display the data including the latest price and setup levels
+    # Ensure the 'Latest Price' is the second column
+    # Reorder DataFrame columns: move 'Latest Price' to second position after 'Symbol'
+    cols = ['Symbol', 'Latest Price'] + [col for col in data[sheet] if col not in ['Symbol', 'Latest Price']]
+    data[sheet] = data[sheet][cols]
+
+    # Display the updated data
     st.table(data[sheet])
