@@ -59,7 +59,11 @@ sheet = st.sidebar.selectbox("Select a sheet:", options=sheet_names)
 st.dataframe(data[sheet], width=None)
 
 # Plotting charts for the selected sheet if it is not 'summary'
-if sheet.lower() != 'summary' and 'FX_Supply_Demand_Swing':
+if sheet.lower() in ['summary', 'FX_Supply_Demand_Swing']:
+    # If so, display the data table and skip chart plotting
+    st.dataframe(data[sheet], width=None)  # width=None allows for auto-adjusting to the page width
+else:
+    # If it's any other sheet, display the data table and the charts
     chart_data = data[sheet].head(20)
     # Generate the dynamic column name for net positions
     net_position_column = f"{sheet.replace(' ', '')} Net Positions" if ' ' in sheet else f"{sheet} Net Positions"
@@ -85,8 +89,8 @@ if sheet.lower() != 'summary' and 'FX_Supply_Demand_Swing':
 
     with col2:
         # Ensure '13w MA' is based on net_position_column and computed right before this plot
-        chart_data['13w MA'] = chart_data[net_position_column].rolling(window=13, min_periods=1).mean()
+        chart_data['13 MA'] = chart_data[net_position_column].rolling(window=13, min_periods=1).mean()
         fig2 = go.Figure()
         fig2.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data[net_position_column], mode='lines', name=net_position_column, line=dict(color='black', width=3)))
-        fig2.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data['13w MA'], mode='lines+markers', name='13w MA', line=dict(dash='dot', color='darkgray')))
+        fig2.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data['13w MA'], mode='lines+markers', name='13 Week MA', line=dict(dash='dot', color='darkgray')))
         st.plotly_chart(fig2, use_container_width=True)
