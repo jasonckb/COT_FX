@@ -96,7 +96,7 @@ if sheet.lower() not in sheets_without_charts:
         fig2.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data['13w MA'], mode='lines+markers', name='13 Week MA', line=dict(dash='dot', color='darkgray')))
         st.plotly_chart(fig2, use_container_width=True)
 
-# Make sure to define the get_latest_price function correctly before using it
+# Define a function to get the latest price from Yahoo Finance
 def get_latest_price(symbol):
     try:
         # Fetching the latest price for the symbol
@@ -106,15 +106,16 @@ def get_latest_price(symbol):
         st.error(f"Error fetching data for {symbol}: {e}")
         return None
 
-# Assuming 'data' is your main DataFrame and 'sheet' is the name of the current sheet
-if sheet.lower() == 'fx_supply_demand_swing':
-    # Initialize the dashboard DataFrame with the 'Symbol' column from the data
-    dashboard_data = data[sheet][['Symbol']].copy()
-    dashboard_data['Latest Price'] = dashboard_data['Symbol'].apply(lambda x: get_latest_price(x.replace("/", "") + "=X"))
+# Your main app logic
+# Assuming 'data' is your main DataFrame and 'sheet' represents the active sheet name
+if 'fx_supply_demand_swing' == sheet.lower():
+    # Sidebar button to refresh FX rates
+    if st.sidebar.button('Refresh FX Rate'):
+        # Refresh the latest prices for the 'FX_Supply_Demand_Swing' sheet
+        for idx, symbol in enumerate(data[sheet]['Symbol']):
+            yahoo_symbol = f"{symbol}=X"
+            data[sheet].at[idx, 'Latest Price'] = get_latest_price(yahoo_symbol)
 
-    # Add the setup level columns dynamically from the sheet
-    for col in data[sheet].columns[1:5]:  # Assuming the next 4 columns are the setup levels
-        dashboard_data[col] = data[sheet][col]
-
-    # Display the dashboard DataFrame
-    st.table(dashboard_data)
+    # Assuming setup levels are the next four columns after 'Symbol'
+    # Display the data including the latest price and setup levels
+    st.table(data[sheet])
