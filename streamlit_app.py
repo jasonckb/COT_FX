@@ -96,27 +96,33 @@ if sheet.lower() not in sheets_without_charts:
         fig2.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data['13w MA'], mode='lines+markers', name='13 Week MA', line=dict(dash='dot', color='darkgray')))
         st.plotly_chart(fig2, use_container_width=True)
 
-# Define a function to get the latest price from Yahoo Finance
+# Make sure to define the get_latest_price function correctly before using it
 def get_latest_price(symbol):
     try:
-        # Fetching the latest price for the symbol
         latest_price_data = yf.download(symbol, period="1d")
         return latest_price_data['Close'].iloc[-1]
     except Exception as e:
         st.error(f"Error fetching data for {symbol}: {e}")
         return None
 
-# Assume 'data' is your main DataFrame and 'sheet' represents the active sheet name
 if sheet.lower() == 'fx_supply_demand_swing':
-    # Sidebar button to refresh FX rates
+    # Refresh button in the sidebar
     if st.sidebar.button('Refresh FX Rate'):
-        # Fetch the latest prices for each symbol and update the 'Latest Price' column
-        data[sheet]['Latest Price'] = data[sheet]['Symbol'].apply(lambda x: get_latest_price(x.replace("/", "") + "=X"))
+        # Fetch and update latest prices
+        for idx, row in data[sheet].iterrows():
+            symbol = row['Symbol'].replace("/", "") + "=X"
+            data[sheet].at[idx, 'Latest Price'] = get_latest_price(symbol)
 
-    # Ensure the 'Latest Price' is the second column
-    # Reorder DataFrame columns: move 'Latest Price' to second position after 'Symbol'
-    cols = ['Symbol', 'Latest Price'] + [col for col in data[sheet] if col not in ['Symbol', 'Latest Price']]
-    data[sheet] = data[sheet][cols]
+    # Make sure 'Latest Price' exists before reordering columns
+    if 'Latest Price' not in data[sheet].columns:
+        data[sheet]['Latest Price'] = pd.NA
 
-    # Display the updated data
+    # Ensure the 'Latest Price' column is second
+    # First, get all columns excluding 'Symbol' and 'Latest Price'
+    other_cols = [col for col in data[sheet].columns if col not in ['Symbol', 'Latest Price']]
+    # Define new column order
+    new_cols = ['Symbol', 'Latest Price'] + other_cols
+    # Reorder the DataFrame
+    data[sheet] = data[sheet][new_cols]
+
     st.table(data[sheet])
