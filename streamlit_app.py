@@ -103,28 +103,34 @@ if sheet.lower() == 'fx_supply_demand_swing':
     # Prepare a new DataFrame for the dashboard
     dashboard_data = data[sheet].copy()
     
-    # Fetch the latest prices for all symbols in the 'Symbol' column
-    for symbol in dashboard_data['Symbol']:
-        try:
-            # Fetch data
-            ticker_data = yf.Ticker(f"{symbol}")
-            # Get the latest closing price
-            latest_price = ticker_data.history(period='1d')['Close'].iloc[-1]
-            # Insert the latest price into the DataFrame
-            dashboard_data.loc[dashboard_data['Symbol'] == symbol, 'Latest Price'] = latest_price
-            
-            # Calculate the percentage difference from the setup prices
-            for setup in ['1st Long Setup', '2nd Long Setup']:
-                setup_price = dashboard_data.loc[dashboard_data['Symbol'] == symbol, setup].iloc[0]
-                if abs((latest_price - setup_price) / setup_price) <= 0.001:  # Within 0.1%
-                    dashboard_data.loc[dashboard_data['Symbol'] == symbol, 'Highlight'] = 'green'
-                    
-            for setup in ['1st short Setup', '2nd short Setup']:
-                setup_price = dashboard_data.loc[dashboard_data['Symbol'] == symbol, setup].iloc[0]
-                if abs((latest_price - setup_price) / setup_price) <= 0.001:  # Within 0.1%
-                    dashboard_data.loc[dashboard_data['Symbol'] == symbol, 'Highlight'] = 'red'
-        except Exception as e:
-            st.error(f"Error fetching data for {symbol}: {str(e)}")
+    # Modify the symbol format to fetch forex data from Yahoo Finance
+for idx, row in dashboard_data.iterrows():
+    symbol = row['Symbol']
+    # Append '=X' to conform to Yahoo Finance's forex symbol format
+    yahoo_symbol = f"{symbol}=X"
+    
+    try:
+        # Fetch data
+        ticker_data = yf.Ticker(yahoo_symbol)
+        # Get the latest closing price
+        latest_price = ticker_data.history(period='1d')['Close'].iloc[-1]
+        # Insert the latest price into the DataFrame
+        dashboard_data.loc[idx, 'Latest Price'] = latest_price
+        
+        # Calculate the percentage difference from the setup prices and assign highlight color
+        dashboard_data.loc[idx, 'Highlight'] = ''  # Default no highlight
+        for setup in ['1st Long Setup', '2nd Long Setup']:
+            setup_price = row[setup]
+            if setup_price and 0 < abs((latest_price - setup_price) / setup_price) <= 0.001:  # Within 0.1%
+                dashboard_data.loc[idx, 'Highlight'] = 'green'
+                
+        for setup in ['1st short Setup', '2nd short Setup']:
+            setup_price = row[setup]
+            if setup_price and 0 < abs((latest_price - setup_price) / setup_price) <= 0.001:  # Within 0.1%
+                dashboard_data.loc[idx, 'Highlight'] = 'red'
+    except Exception as e:
+        st.error(f"Error fetching data for {symbol}: {str(e)}")
+
             
     # Apply conditional formatting to color the rows
     def apply_row_color(_):
