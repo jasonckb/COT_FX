@@ -58,8 +58,14 @@ sheet = st.sidebar.selectbox("Select a sheet:", options=sheet_names)
 # Display data table for the selected sheet with formatting applied
 st.dataframe(data[sheet], width=None)
 
+# Explicitly list the sheets that should only display the table without charts
+sheets_without_charts = ['summary', 'FX_Supply_Demand_Swing']
+
+# Explicitly list the sheets that should only display the table without charts
+sheets_without_charts = ['summary', 'FX_Supply_Demand_Swing']
+
 # Plotting charts for the selected sheet if it is not 'summary'
-if sheet.lower() in ['summary', 'FX_Supply_Demand_Swing']:
+if sheet in sheets_without_charts:
     # If so, display the data table and skip chart plotting
     st.dataframe(data[sheet], width=None)  # width=None allows for auto-adjusting to the page width
 else:
