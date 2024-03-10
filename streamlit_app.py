@@ -56,18 +56,24 @@ sheet_names = list(data.keys())  # Maintain the order of sheets
 sheet = st.sidebar.selectbox("Select a sheet:", options=sheet_names)
 
 # Display data table for the selected sheet with formatting applied
-st.dataframe(data[sheet])
+st.dataframe(data[sheet], width=None)
 
-
+# Plotting charts for the selected sheet if it is not 'summary'
 if sheet.lower() != 'summary':
     chart_data = data[sheet].head(20)
-
-    # Define net_position_column right after confirming the sheet is not 'summary'
-    # This ensures the variable is available throughout your plotting logic
+    # Generate the dynamic column name for net positions
     net_position_column = f"{sheet.replace(' ', '')} Net Positions" if ' ' in sheet else f"{sheet} Net Positions"
-
-    # Now proceed with your plotting, now safely inside the condition where net_position_column is defined
-    col1, col2 = st.columns(2)
+    
+    # Check if the dynamically generated column name is in the DataFrame
+    if net_position_column not in chart_data.columns:
+        # If not, print an error message and list available columns
+        st.error(f"Column {net_position_column} not found in the data.")
+        st.write("Available columns: ", chart_data.columns.tolist())
+        # Optionally, halt further execution for this sheet
+        st.stop()
+    else:
+        # Proceed with plotting since the column exists
+        col1, col2 = st.columns(2)
 
     with col1:
         fig = go.Figure()
