@@ -58,18 +58,8 @@ sheet = st.sidebar.selectbox("Select a sheet:", options=sheet_names)
 # Display data table for the selected sheet with formatting applied
 st.dataframe(data[sheet], width=None)
 
-# Explicitly list the sheets that should only display the table without charts
-sheets_without_charts = ['summary', 'FX_Supply_Demand_Swing']
-
-# Explicitly list the sheets that should only display the table without charts
-sheets_without_charts = ['summary', 'FX_Supply_Demand_Swing']
-
 # Plotting charts for the selected sheet if it is not 'summary'
-if sheet in sheets_without_charts:
-    # If so, display the data table and skip chart plotting
-    st.dataframe(data[sheet], width=None)  # width=None allows for auto-adjusting to the page width
-else:
-    # If it's any other sheet, display the data table and the charts
+if sheet.lower() != 'summary' or 'FX_Supply_Demand_Swing':
     chart_data = data[sheet].head(20)
     # Generate the dynamic column name for net positions
     net_position_column = f"{sheet.replace(' ', '')} Net Positions" if ' ' in sheet else f"{sheet} Net Positions"
