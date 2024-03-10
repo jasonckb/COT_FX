@@ -96,20 +96,7 @@ if sheet.lower() not in sheets_without_charts:
         fig2.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data['13w MA'], mode='lines+markers', name='13 Week MA', line=dict(dash='dot', color='darkgray')))
         st.plotly_chart(fig2, use_container_width=True)
 
-if sheet.lower() == 'fx_supply_demand_swing':
-    # Initialize the dashboard DataFrame with the 'Symbol' column from the data
-    dashboard_data = data[sheet][['Symbol']].copy()
-
-    # Add the latest price column to the dashboard
-    dashboard_data['Latest Price'] = dashboard_data['Symbol'].apply(lambda x: get_latest_price(x + "=X"))
-
-    # Include the setup level columns (assuming they are the next columns after 'Symbol')
-    setup_levels = data[sheet].columns[1:5]  # This gets the next four columns after 'Symbol'
-    dashboard_data = pd.concat([dashboard_data, data[sheet][setup_levels]], axis=1)
-
-    # Format the dashboard DataFrame: display latest prices and setup levels
-    st.table(dashboard_data)
-
+# Make sure to define the get_latest_price function correctly before using it
 def get_latest_price(symbol):
     try:
         # Fetching the latest price for the symbol
@@ -118,3 +105,16 @@ def get_latest_price(symbol):
     except Exception as e:
         st.error(f"Error fetching data for {symbol}: {e}")
         return None
+
+# Assuming 'data' is your main DataFrame and 'sheet' is the name of the current sheet
+if sheet.lower() == 'fx_supply_demand_swing':
+    # Initialize the dashboard DataFrame with the 'Symbol' column from the data
+    dashboard_data = data[sheet][['Symbol']].copy()
+    dashboard_data['Latest Price'] = dashboard_data['Symbol'].apply(lambda x: get_latest_price(x.replace("/", "") + "=X"))
+
+    # Add the setup level columns dynamically from the sheet
+    for col in data[sheet].columns[1:5]:  # Assuming the next 4 columns are the setup levels
+        dashboard_data[col] = data[sheet][col]
+
+    # Display the dashboard DataFrame
+    st.table(dashboard_data)
