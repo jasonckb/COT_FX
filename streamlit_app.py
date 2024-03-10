@@ -97,6 +97,7 @@ if sheet.lower() not in sheets_without_charts:
         fig2.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data['13w MA'], mode='lines+markers', name='13 Week MA', line=dict(dash='dot', color='darkgray')))
         st.plotly_chart(fig2, use_container_width=True)
 
+"please incorporate the idea with your previous code"
 # Make sure to define the get_latest_price function correctly before using it
 def get_latest_price(symbol):
     try:
@@ -131,4 +132,71 @@ if sheet.lower() == 'fx_supply_demand_swing':
 
     # Display the full length table without scrolling
     st.write(html_table, unsafe_allow_html=True)
+
+Here's the modified code that incorporates the idea of coloring the rows based on the conditions you mentioned:
+
+
+import pandas as pd
+import streamlit as st
+import yfinance as yf
+
+# Define a function to color the rows based on conditions
+def color_rows(df):
+    # Create a new DataFrame with the same index and columns as the input DataFrame
+    colored_df = pd.DataFrame('', index=df.index, columns=df.columns)
+
+    # Loop through each row in the input DataFrame
+    for idx, row in df.iterrows():
+        # Check if the latest price is close to 0.1% of one of the long set up levels
+        if row['Latest Price'] >= row['1st Long Setup'] * 0.999 and row['Latest Price'] <= row['1st Long Setup'] * 1.001:
+            colored_df.loc[idx, :] = 'background-color: green'
+        elif row['Latest Price'] >= row['2nd Long Setup'] * 0.999 and row['Latest Price'] <= row['2nd Long Setup'] * 1.001:
+            colored_df.loc[idx, :] = 'background-color: green'
+        # Check if the latest price is close to 0.1% of one of the short set up levels
+        elif row['Latest Price'] >= row['1st short Setup'] * 0.999 and row['Latest Price'] <= row['1st short Setup'] * 1.001:
+            colored_df.loc[idx, :] = 'background-color: red'
+        elif row['Latest Price'] >= row['2nd short Setup'] * 0.999 and row['Latest Price'] <= row['2nd short Setup'] * 1.001:
+            colored_df.loc[idx, :] = 'background-color: red'
+
+    return colored_df
+
+# Define a function to fetch the latest price for a given symbol
+def get_latest_price(symbol):
+    try:
+        latest_price_data = yf.download(symbol, period="1d")
+        return latest_price_data['Close'].iloc[-1]
+    except Exception as e:
+        st.error(f"Error fetching data for {symbol}: {e}")
+        return None
+
+if sheet.lower() == 'fx_supply_demand_swing':
+    # Refresh button in the sidebar
+    if st.sidebar.button('Refresh FX Rate'):
+        # Fetch and update latest prices
+        for idx, row in data[sheet].iterrows():
+            symbol = row['Symbol'].replace("/", "") + "=X"
+            data[sheet].at[idx, 'Latest Price'] = get_latest_price(symbol)
+
+    # Make sure 'Latest Price' exists before reordering columns
+    if 'Latest Price' not in data[sheet].columns:
+        data[sheet]['Latest Price'] = pd.NA
+
+    # Ensure the 'Latest Price' column is second
+    # First, get all columns excluding 'Symbol' and 'Latest Price'
+    other_cols = [col for col in data[sheet].columns if col not in ['Symbol', 'Latest Price']]
+    # Define new column order
+    new_cols = ['Symbol', 'Latest Price'] + other_cols
+    # Reorder the DataFrame
+    data[sheet] = data[sheet][new_cols]
+
+    # Apply the coloring function to the DataFrame
+    styled_data = data[sheet].style.apply(color_rows, axis=None)
+
+    # Convert the styled DataFrame to an HTML table
+    html_table = styled_data.render()
+
+    # Display the full length table without scrolling
+    st.write(html_table, unsafe_allow_html=True)
+
+
 
