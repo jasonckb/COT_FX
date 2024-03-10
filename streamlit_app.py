@@ -104,6 +104,10 @@ def color_rows(df):
 
     # Loop through each row in the input DataFrame
     for idx, row in df.iterrows():
+        # Check if any of the required values are NA
+        if pd.isna(row['Latest Price']) or pd.isna(row['1st Long Setup']) or pd.isna(row['2nd Long Setup']) or pd.isna(row['1st short Setup']) or pd.isna(row['2nd short Setup']):
+            continue
+
         # Check if the latest price is close to 0.1% of one of the long set up levels
         if row['Latest Price'] >= row['1st Long Setup'] * 0.999 and row['Latest Price'] <= row['1st Long Setup'] * 1.001:
             colored_df.loc[idx, :] = 'background-color: green'
@@ -116,6 +120,7 @@ def color_rows(df):
             colored_df.loc[idx, :] = 'background-color: red'
 
     return colored_df
+
 
 # Define a function to fetch the latest price for a given symbol
 def get_latest_price(symbol):
