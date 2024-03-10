@@ -98,43 +98,48 @@ if sheet.lower() not in sheets_without_charts:
 
 # Separate handling for 'FX_Supply_Demand_Swing' at the end, without an else
 if sheet.lower() == 'fx_supply_demand_swing':
-    st.dataframe(data[sheet])  # Display the data table
+    # Display the original data table
+    st.dataframe(data[sheet])
 
     dashboard_data = data[sheet].copy()
-    dashboard_data['Latest Price'] = pd.NA
-    dashboard_data['Highlight'] = ''  # Initialize the Highlight column
+    dashboard_data['Latest Price'] = pd.NA  # Initialize Latest Price column
 
     for idx, row in dashboard_data.iterrows():
         symbol = f"{row['Symbol']}=X"  # Adjust for Forex symbol format
         try:
-            # Fetching the latest price
+            # Fetch the latest price
             latest_price = yf.download(symbol, period="1d")['Close'].iloc[-1]
             dashboard_data.at[idx, 'Latest Price'] = latest_price
-
-            # Determine highlight color based on comparison with setup values
-            highlight_color = ''
-            for setup_col in ['1st Long Setup', '2nd Long Setup']:
-                if 0 < abs((latest_price - row[setup_col]) / row[setup_col]) <= 0.001:
-                    highlight_color = 'green'
-                    break
-
-            if not highlight_color:  # Check short setups only if long setups didn't meet condition
-                for setup_col in ['1st short Setup', '2nd short Setup']:
-                    if 0 < abs((latest_price - row[setup_col]) / row[setup_col]) <= 0.001:
-                        highlight_color = 'red'
-                        break
-
-            dashboard_data.at[idx, 'Highlight'] = highlight_color
-
         except Exception as e:
             st.error(f"Error fetching data for {row['Symbol']}: {e}")
 
-    # Apply conditional formatting function
-    def apply_highlight(row):
-        # Apply background color to all except the last column ('Highlight')
-        color = row['Highlight']
-        return ['background-color: ' + color if color else '' for _ in range(len(row) - 2)] + ['']
+    # Move 'Latest Price' to the second column position
+    cols = list(dashboard_data.columns)
+    cols.insert(1, cols.pop(cols.index('Latest Price')))
+    dashboard_data = dashboard_data.loc[:, cols]
 
-    # Applying the styling and dropping the 'Highlight' column for display
-    styled_df = dashboard_data.style.apply(apply_highlight, axis=1).drop('Highlight', axis=1)
+    # Determine highlight color based on comparison with setup values
+    for idx, row in dashboard_data.iterrows():
+        highlight_color = ''
+        for setup_col in ['1st Long Setup', '2nd Long Setup']:
+            if pd.notnull(row[setup_col]) and 0 < abs((row['Latest Price'] - row[setup_col]) / row[setup_col]) <= 0.001:
+                highlight_color = 'green'
+                break
+
+        if not highlight_color:
+            for setup_col in ['1st short Setup', '2nd short Setup']:
+                if pd.notnull(row[setup_col]) and 0 < abs((row['Latest Price'] - row[setup_col]) / row[setup_col]) <= 0.001:
+                    highlight_color = 'red'
+                    break
+
+        dashboard_data.at[idx, 'Highlight'] = highlight_color
+
+    # Define function to apply conditional formatting
+    def apply_highlight(row):
+        # Apply the color to all cells in the row based on 'Highlight' value
+        color = row['Highlight']
+        return ['background-color: ' + color if color else '' for _ in row[:-1]] + ['']  # Empty style for 'Highlight'
+
+    # Apply styling and exclude 'Highlight' column for display
+    styled_df = dashboard_data.drop(columns='Highlight').style.apply(apply_highlight, axis=1)
     st.dataframe(styled_df)
