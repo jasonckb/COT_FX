@@ -152,13 +152,13 @@ if sheet.lower() == 'fx_supply_demand_swing':
     data[sheet] = data[sheet][new_cols]
 
     # Apply the coloring function to the DataFrame
-    styled_data = color_rows(data[sheet])
+    colored_data = color_rows(data[sheet])
 
-    # Convert the styled DataFrame to HTML
-    html_table = styled_data.to_html(index=False, escape=False)
+    # Convert the colored DataFrame to an HTML table
+    html_table = colored_data.to_html(index=False)
 
     # Display the full length table without scrolling
     st.write(html_table, unsafe_allow_html=True)
-
-    
+else:
+    st.dataframe(data[sheet])
 
