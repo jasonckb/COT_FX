@@ -90,7 +90,7 @@ if sheet.lower() not in sheets_without_charts:
 
     with col2:
         # Ensure '13w MA' is based on net_position_column and computed right before this plot
-        chart_data['13 MA'] = chart_data[net_position_column].rolling(window=13, min_periods=1).mean()
+        chart_data['13w MA'] = chart_data[net_position_column].rolling(window=13, min_periods=1).mean()
         fig2 = go.Figure()
         fig2.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data[net_position_column], mode='lines', name=net_position_column, line=dict(color='black', width=3)))
         fig2.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data['13w MA'], mode='lines+markers', name='13 Week MA', line=dict(dash='dot', color='darkgray')))
