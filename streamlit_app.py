@@ -96,23 +96,40 @@ if sheet.lower() not in sheets_without_charts:
         fig2.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data['13w MA'], mode='lines+markers', name='13 Week MA', line=dict(dash='dot', color='darkgray')))
         st.plotly_chart(fig2, use_container_width=True)
 
-# Assume data is loaded as 'data' and 'sheet' is set to 'FX_Supply_Demand_Swing'
-if sheet.lower() == 'fx_supply_demand_swing':
-    dashboard_data = data[sheet][['Symbol', '1st Long Setup', '2nd Long Setup', '1st Short Setup', '2nd Short Setup']].copy()
-    dashboard_data['Latest Price'] = pd.NA  # Initialize the Latest Price column
+# Function to fetch the latest price from Yahoo Finance
+def get_latest_price(symbol):
+    try:
+        data = yf.download(f"{symbol}=X", period="1d")
+        return data['Close'].iloc[-1]
+    except Exception as e:
+        st.error(f"Error fetching data for {symbol}: {e}")
+        return None
 
-    # Fetch the latest prices and update the dashboard DataFrame
-    for idx, symbol in enumerate(dashboard_data['Symbol']):
-        yahoo_symbol = f"{symbol}=X"
-        try:
-            latest_price = yf.download(yahoo_symbol, period="1d")['Close'].iloc[-1]
-            dashboard_data.loc[idx, 'Latest Price'] = latest_price
-        except Exception as e:
-            st.error(f"Error fetching data for {symbol}: {e}")
+# Load data from the 'FX_Supply_Demand_Swing' sheet
+data = pd.read_excel('path_to_your_excel_file.xlsx', sheet_name='FX_Supply_Demand_Swing')
 
-    # Reorder columns to have 'Latest Price' after 'Symbol'
-    cols_order = ['Symbol', 'Latest Price', '1st Long Setup', '2nd Long Setup', '1st Short Setup', '2nd Short Setup']
-    dashboard_data = dashboard_data[cols_order]
+# Add a column for the latest price
+data['Latest Price'] = data['Symbol'].apply(get_latest_price)
 
-    # Display the dashboard DataFrame
-    st.table(dashboard_data)
+# Create a function to determine the row color based on the setup prices and the latest price
+def color_row(row):
+    long_setup_cols = [col for col in row.index if 'Long Setup' in col]
+    short_setup_cols = [col for col in row.index if 'Short Setup' in col]
+    
+    # Check if the latest price is within 0.1% of any long setup prices
+    for col in long_setup_cols:
+        if abs(row[col] - row['Latest Price']) / row['Latest Price'] < 0.001:
+            return 'background-color: green'
+    
+    # Check if the latest price is within 0.1% of any short setup prices
+    for col in short_setup_cols:
+        if abs(row[col] - row['Latest Price']) / row['Latest Price'] < 0.001:
+            return 'background-color: red'
+
+    return ''  # No color
+
+# Apply the coloring function to the DataFrame
+styled_data = data.style.apply(lambda row: color_row(row), axis=1)
+
+# Display the styled DataFrame as a table in Streamlit
+st.table(styled_data)
