@@ -57,7 +57,8 @@ sheet_names = list(data.keys())  # Maintain the order of sheets
 sheet = st.sidebar.selectbox("Select a sheet:", options=sheet_names)
 
 # Display data table for the selected sheet with formatting applied
-st.dataframe(data[sheet], width=None)
+if sheet.lower() != 'fx_supply_demand_swing':
+    st.dataframe(data[sheet], width=None)
 
 # Determine if the selected sheet should not display charts
 sheets_without_charts = ['summary', 'fx_supply_demand_swing']
