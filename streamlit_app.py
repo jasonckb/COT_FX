@@ -130,5 +130,8 @@ if sheet.lower() == 'fx_supply_demand_swing':
     row_height = 30  # Set the height of each row to 30 pixels
     table_height = len(data[sheet]) * row_height  # Calculate the height of the table
 
+    # Convert table_height to a string with the 'px' unit
+    table_height_str = f"{table_height}px"
+
     # Display the full length table
-    st.table(data[sheet], height=table_height)
+    st.table(data[sheet], height=table_height_str)
