@@ -96,50 +96,21 @@ if sheet.lower() not in sheets_without_charts:
         fig2.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data['13w MA'], mode='lines+markers', name='13 Week MA', line=dict(dash='dot', color='darkgray')))
         st.plotly_chart(fig2, use_container_width=True)
 
-# Separate handling for 'FX_Supply_Demand_Swing' at the end, without an else
 if sheet.lower() == 'fx_supply_demand_swing':
-    # Display the original data table
-    st.dataframe(data[sheet])
+    # Create a new DataFrame for the dashboard
+    dashboard_data = pd.DataFrame(data[sheet]['Symbol'], columns=['Symbol'])
+    dashboard_data['Latest Price'] = pd.NA  # Initialize the Latest Price column
 
-    dashboard_data = data[sheet].copy()
-    dashboard_data['Latest Price'] = pd.NA  # Initialize Latest Price column
-
-    for idx, row in dashboard_data.iterrows():
-        symbol = f"{row['Symbol']}=X"  # Adjust for Forex symbol format
+    # Fetch the latest prices and populate the dashboard DataFrame
+    for idx, symbol in enumerate(dashboard_data['Symbol']):
+        # Formatting the symbol to match Yahoo Finance's convention for Forex pairs
+        yahoo_symbol = f"{symbol}=X"
         try:
-            # Fetch the latest price
-            latest_price = yf.download(symbol, period="1d")['Close'].iloc[-1]
-            dashboard_data.at[idx, 'Latest Price'] = latest_price
+            # Fetching the latest price
+            latest_price = yf.download(yahoo_symbol, period="1d")['Close'].iloc[-1]
+            dashboard_data.loc[idx, 'Latest Price'] = latest_price
         except Exception as e:
-            st.error(f"Error fetching data for {row['Symbol']}: {e}")
+            st.error(f"Error fetching data for {symbol}: {e}")
 
-    # Move 'Latest Price' to the second column position
-    cols = list(dashboard_data.columns)
-    cols.insert(1, cols.pop(cols.index('Latest Price')))
-    dashboard_data = dashboard_data.loc[:, cols]
-
-    # Determine highlight color based on comparison with setup values
-    for idx, row in dashboard_data.iterrows():
-        highlight_color = ''
-        for setup_col in ['1st Long Setup', '2nd Long Setup']:
-            if pd.notnull(row[setup_col]) and 0 < abs((row['Latest Price'] - row[setup_col]) / row[setup_col]) <= 0.001:
-                highlight_color = 'green'
-                break
-
-        if not highlight_color:
-            for setup_col in ['1st short Setup', '2nd short Setup']:
-                if pd.notnull(row[setup_col]) and 0 < abs((row['Latest Price'] - row[setup_col]) / row[setup_col]) <= 0.001:
-                    highlight_color = 'red'
-                    break
-
-        dashboard_data.at[idx, 'Highlight'] = highlight_color
-
-    # Define function to apply conditional formatting
-    def apply_highlight(row):
-        # Apply the color to all cells in the row based on 'Highlight' value
-        color = row['Highlight']
-        return ['background-color: ' + color if color else '' for _ in row[:-1]] + ['']  # Empty style for 'Highlight'
-
-    # Apply styling and exclude 'Highlight' column for display
-    styled_df = dashboard_data.drop(columns='Highlight').style.apply(apply_highlight, axis=1)
-    st.dataframe(styled_df)
+    # Displaying the dashboard DataFrame
+    st.table(dashboard_data)
