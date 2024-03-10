@@ -67,7 +67,7 @@ if sheet.lower() != 'summary':
     net_position_column = f"{sheet.replace(' ', '')} Net Positions" if ' ' in sheet else f"{sheet} Net Positions"
 
     # Now proceed with your plotting, now safely inside the condition where net_position_column is defined
-    col1, col2 = st.columns(2)
+    col1, col2 = st.columns(1,1)
 
     with col1:
         fig = go.Figure()
