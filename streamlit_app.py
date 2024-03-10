@@ -126,19 +126,9 @@ if sheet.lower() == 'fx_supply_demand_swing':
     # Reorder the DataFrame
     data[sheet] = data[sheet][new_cols]
 
-    # Define a function to generate CSS styles for the DataFrame
-    def generate_styles(data):
-        styles = [
-            dict(selector="th", props=[("max-width", "150px")]),  # Adjust the max-width for headers
-            dict(selector="td", props=[("max-width", "150px")]),  # Adjust the max-width for cells
-        ]
-        return styles
+    # Calculate the height of the table based on the number of rows and row height
+    row_height = 30  # Set the height of each row to 30 pixels
+    table_height = len(data[sheet]) * row_height  # Calculate the height of the table
 
-    # Generate styles for the DataFrame
-    styles = generate_styles(data[sheet])
-
-    # Apply the styles to the DataFrame
-    styled_data = data[sheet].style.set_table_styles(styles)
-
-    # Display the styled DataFrame
-    st.write(styled_data)
+    # Display the full length table
+    st.table(data[sheet], height=table_height)
