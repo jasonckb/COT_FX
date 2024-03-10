@@ -102,38 +102,39 @@ if sheet.lower() == 'fx_supply_demand_swing':
 
     dashboard_data = data[sheet].copy()
     dashboard_data['Latest Price'] = pd.NA
+    dashboard_data['Highlight'] = ''  # Initialize the Highlight column
 
     for idx, row in dashboard_data.iterrows():
-        symbol = f"{row['Symbol']}=X"
+        symbol = f"{row['Symbol']}=X"  # Adjust for Forex symbol format
         try:
+            # Fetching the latest price
             latest_price = yf.download(symbol, period="1d")['Close'].iloc[-1]
             dashboard_data.at[idx, 'Latest Price'] = latest_price
 
-            # Default highlight is none
+            # Determine highlight color based on comparison with setup values
             highlight_color = ''
-            
-            # Check against long setup values
             for setup_col in ['1st Long Setup', '2nd Long Setup']:
                 if 0 < abs((latest_price - row[setup_col]) / row[setup_col]) <= 0.001:
-                    highlight_color = 'background-color: green'
+                    highlight_color = 'green'
                     break
 
-            # Check against short setup values only if no long setup condition met
-            if not highlight_color:
+            if not highlight_color:  # Check short setups only if long setups didn't meet condition
                 for setup_col in ['1st short Setup', '2nd short Setup']:
                     if 0 < abs((latest_price - row[setup_col]) / row[setup_col]) <= 0.001:
-                        highlight_color = 'background-color: red'
+                        highlight_color = 'red'
                         break
 
-            # Apply highlight color
             dashboard_data.at[idx, 'Highlight'] = highlight_color
 
         except Exception as e:
             st.error(f"Error fetching data for {row['Symbol']}: {e}")
 
-    # Apply conditional formatting
+    # Apply conditional formatting function
     def apply_highlight(row):
+        # Apply background color to all except the last column ('Highlight')
         color = row['Highlight']
-        return [color if color else ''] * len(row)
+        return ['background-color: ' + color if color else '' for _ in range(len(row) - 2)] + ['']
 
-    st.dataframe(dashboard_data.drop(columns='Highlight').style.apply(apply_highlight, axis=1))
+    # Applying the styling and dropping the 'Highlight' column for display
+    styled_df = dashboard_data.style.apply(apply_highlight, axis=1).drop('Highlight', axis=1)
+    st.dataframe(styled_df)
