@@ -45,23 +45,24 @@ sheet = st.sidebar.selectbox("Select a sheet:", options=sheet_names)
 # Make table wider
 st.dataframe(data[sheet], width=1000)
 
-# Placing two charts side by side
+# Assuming your previous chart_data setup and computations are intact and correct.
+
 if sheet.lower() != 'summary':
+    # Prepare chart_data for plotting
     chart_data = data[sheet].head(20)
 
     # Initialize two-column layout
     col1, col2 = st.columns(2)
 
-    # Chart 1 in column 1
+    # Chart 1 in the first column
     with col1:
         fig = go.Figure()
         fig.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data['Long'], mode='lines', name='Long', line=dict(color='blue')))
         fig.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data['Short'], mode='lines', name='Short', line=dict(color='red')))
-        net_position_column = f"{sheet.replace(' ', '')} Net Positions" if ' ' in sheet else f"{sheet} Net Positions"
         fig.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data[net_position_column], mode='lines', name=net_position_column, line=dict(color='darkgray', width=3)))
         st.plotly_chart(fig, use_container_width=True)
 
-    # Chart 2 in column 2
+    # Chart 2 in the second column
     with col2:
         fig2 = go.Figure()
         fig2.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data[net_position_column], mode='lines', name=net_position_column, line=dict(color='black', width=3)))
