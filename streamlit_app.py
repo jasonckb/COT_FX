@@ -96,21 +96,23 @@ if sheet.lower() not in sheets_without_charts:
         fig2.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data['13w MA'], mode='lines+markers', name='13 Week MA', line=dict(dash='dot', color='darkgray')))
         st.plotly_chart(fig2, use_container_width=True)
 
+# Assume data is loaded as 'data' and 'sheet' is set to 'FX_Supply_Demand_Swing'
 if sheet.lower() == 'fx_supply_demand_swing':
-    # Create a new DataFrame for the dashboard
-    dashboard_data = pd.DataFrame(data[sheet]['Symbol'], columns=['Symbol'])
+    dashboard_data = data[sheet][['Symbol', '1st Long Setup', '2nd Long Setup', '1st Short Setup', '2nd Short Setup']].copy()
     dashboard_data['Latest Price'] = pd.NA  # Initialize the Latest Price column
 
-    # Fetch the latest prices and populate the dashboard DataFrame
+    # Fetch the latest prices and update the dashboard DataFrame
     for idx, symbol in enumerate(dashboard_data['Symbol']):
-        # Formatting the symbol to match Yahoo Finance's convention for Forex pairs
         yahoo_symbol = f"{symbol}=X"
         try:
-            # Fetching the latest price
             latest_price = yf.download(yahoo_symbol, period="1d")['Close'].iloc[-1]
             dashboard_data.loc[idx, 'Latest Price'] = latest_price
         except Exception as e:
             st.error(f"Error fetching data for {symbol}: {e}")
 
-    # Displaying the dashboard DataFrame
+    # Reorder columns to have 'Latest Price' after 'Symbol'
+    cols_order = ['Symbol', 'Latest Price', '1st Long Setup', '2nd Long Setup', '1st Short Setup', '2nd Short Setup']
+    dashboard_data = dashboard_data[cols_order]
+
+    # Display the dashboard DataFrame
     st.table(dashboard_data)
