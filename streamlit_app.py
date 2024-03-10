@@ -163,26 +163,6 @@ if sheet.lower() == 'fx_supply_demand_swing':
     styled_data = data[sheet].style.apply(color_rows, axis=None)
 
     # Display the full length table without scrolling
-    selected_row = st.table(styled_data, key='table')
-
-    # If a row is selected, fetch the historical OHLC data for the corresponding symbol and plot an interactive chart
-    if selected_row:
-        symbol = selected_row['Symbol'].replace("/", "") + "=X"
-        historical_data = get_historical_data(symbol)
-        if historical_data is not None:
-            fig = go.Figure(data=[go.Candlestick(x=historical_data.index,
-                                                 open=historical_data['Open'],
-                                                 high=historical_data['High'],
-                                                 low=historical_data['Low'],
-                                                 close=historical_data['Close'])])
-            fig.update_layout(title=f"{symbol} OHLC Chart", xaxis_title="Date", yaxis_title="Price")
-            st.plotly_chart(fig)
-
-            # Add the levels from the selected row to the chart as horizontal lines
-            for col in ['1st Long Setup', '2nd Long Setup', '1st short Setup', '2nd short Setup']:
-                level = selected_row[col]
-                if not pd.isna(level):
-                    fig.add_layout_shape(type="line", x0=historical_data.index[0], y0=level, x1=historical_data.index[-1], y1=level,
-                                         line=dict(color="red", width=2, dash="dash"))
+    st.write(styled_data)
     
 
