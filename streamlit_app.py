@@ -61,14 +61,9 @@ st.dataframe(data[sheet], width=None)
 # Determine if the selected sheet should not display charts
 sheets_without_charts = ['summary', 'fx_supply_demand_swing']
 
-# Check if the selected sheet should not plot charts
-if sheet.lower() in sheets_without_charts:
-    # Display the data table for 'Summary' or 'FX_Supply_Demand_Swing'
-    st.dataframe(data[sheet])
-else:
-    # For other sheets, display the data table and then the charts
-    st.dataframe(data[sheet])  # Display the data table common for all sheets
-    
+# Check if the selected sheet should plot charts
+if sheet.lower() not in sheets_without_charts:
+    # Load the last 20 entries of the selected sheet for chart plotting
     chart_data = data[sheet].head(20)
     # Generate the dynamic column name for net positions
     net_position_column = f"{sheet.replace(' ', '')} Net Positions" if ' ' in sheet else f"{sheet} Net Positions"
