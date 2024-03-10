@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 import openpyxl
+import yfinance as yf
 
 st.set_page_config(page_title="CFTC COT Report & FX Dashboard", layout="wide")
 st.title('CFTC COT Report & FX Dashboard by Jason Chan')
@@ -94,3 +95,40 @@ if sheet.lower() not in sheets_without_charts:
         fig2.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data[net_position_column], mode='lines', name=net_position_column, line=dict(color='black', width=3)))
         fig2.add_trace(go.Scatter(x=chart_data['Date'], y=chart_data['13w MA'], mode='lines+markers', name='13 Week MA', line=dict(dash='dot', color='darkgray')))
         st.plotly_chart(fig2, use_container_width=True)
+
+# Let's assume data is loaded and 'sheet' variable is defined
+if sheet.lower() == 'fx_supply_demand_swing':
+    st.dataframe(data[sheet])  # Display the FX_Supply_Demand_Swing data table
+    
+    # Prepare a new DataFrame for the dashboard
+    dashboard_data = data[sheet].copy()
+    
+    # Fetch the latest prices for all symbols in the 'Symbol' column
+    for symbol in dashboard_data['Symbol']:
+        try:
+            # Fetch data
+            ticker_data = yf.Ticker(f"{symbol}")
+            # Get the latest closing price
+            latest_price = ticker_data.history(period='1d')['Close'].iloc[-1]
+            # Insert the latest price into the DataFrame
+            dashboard_data.loc[dashboard_data['Symbol'] == symbol, 'Latest Price'] = latest_price
+            
+            # Calculate the percentage difference from the setup prices
+            for setup in ['1st Long Setup', '2nd Long Setup']:
+                setup_price = dashboard_data.loc[dashboard_data['Symbol'] == symbol, setup].iloc[0]
+                if abs((latest_price - setup_price) / setup_price) <= 0.001:  # Within 0.1%
+                    dashboard_data.loc[dashboard_data['Symbol'] == symbol, 'Highlight'] = 'green'
+                    
+            for setup in ['1st short Setup', '2nd short Setup']:
+                setup_price = dashboard_data.loc[dashboard_data['Symbol'] == symbol, setup].iloc[0]
+                if abs((latest_price - setup_price) / setup_price) <= 0.001:  # Within 0.1%
+                    dashboard_data.loc[dashboard_data['Symbol'] == symbol, 'Highlight'] = 'red'
+        except Exception as e:
+            st.error(f"Error fetching data for {symbol}: {str(e)}")
+            
+    # Apply conditional formatting to color the rows
+    def apply_row_color(_):
+        colors = dashboard_data['Highlight'].map({'green': 'background-color: green', 'red': 'background-color: red', None: ''})
+        return colors
+    
+    st.dataframe(dashboard_data.style.apply(apply_row_color, axis=1).drop(columns=['Highlight']))
