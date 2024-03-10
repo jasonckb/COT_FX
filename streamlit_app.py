@@ -122,6 +122,7 @@ def color_rows(df):
 
     return colored_df
 
+# Define a function to fetch historical data for a given symbol
 def get_historical_data(symbol):
     try:
         historical_data = yf.download(symbol, period="3mo")
@@ -129,8 +130,6 @@ def get_historical_data(symbol):
     except Exception as e:
         st.error(f"Error fetching data for {symbol}: {e}")
         return None
-
-
 # Define a function to fetch the latest price for a given symbol
 def get_latest_price(symbol):
     try:
@@ -179,10 +178,11 @@ if sheet.lower() == 'fx_supply_demand_swing':
             fig.update_layout(title=f"{symbol} OHLC Chart", xaxis_title="Date", yaxis_title="Price")
             st.plotly_chart(fig)
 
-# Add the levels from the selected row to the chart as horizontal lines
-for col in ['1st Long Setup', '2nd Long Setup', '1st short Setup', '2nd short Setup']:
-    level = selected_row[col]
-    if not pd.isna(level):
-        fig.add_layout_shape(type="line", x0=historical_data.index[0], y0=level, x1=historical_data.index[-1], y1=level,
-                             line=dict(color="red", width=2, dash="dash"))
+            # Add the levels from the selected row to the chart as horizontal lines
+            for col in ['1st Long Setup', '2nd Long Setup', '1st short Setup', '2nd short Setup']:
+                level = selected_row[col]
+                if not pd.isna(level):
+                    fig.add_layout_shape(type="line", x0=historical_data.index[0], y0=level, x1=historical_data.index[-1], y1=level,
+                                         line=dict(color="red", width=2, dash="dash"))
+    
 
