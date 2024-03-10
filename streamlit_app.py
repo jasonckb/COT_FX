@@ -3,6 +3,9 @@ import pandas as pd
 import plotly.graph_objects as go
 import openpyxl
 
+st.set_page_config(page_title="CFTC COT Report & FX Dashboard", layout="wide")
+st.title('CFTC COT Report & FX Dashboard by Jason Chan')
+
 # Helper function to clean and format data
 def clean_and_format_data(sheet_data):
     formatted_sheet = sheet_data.copy()
