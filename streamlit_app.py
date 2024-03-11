@@ -191,17 +191,12 @@ def plot_interactive_chart(historical_data, setup_levels):
 
     fig = go.Figure()
 
-    # Check if all required columns are present for a candlestick chart
-    if all(['Open', 'High', 'Low', 'Close'] in historical_data.columns):
-        # Add candlestick chart
-        fig.add_trace(go.Candlestick(x=historical_data.index,
-                                     open=historical_data['Open'],
-                                     high=historical_data['High'],
-                                     low=historical_data['Low'],
-                                     close=historical_data['Close']))
-    else:
-        # Add bar chart using Close prices
-        fig.add_trace(go.Bar(x=historical_data.index, y=historical_data['Close']))
+    # Add candlestick chart
+    fig.add_trace(go.Candlestick(x=historical_data.index,
+                                 open=historical_data['Open'],
+                                 high=historical_data['High'],
+                                 low=historical_data['Low'],
+                                 close=historical_data['Close']))
 
     # Add horizontal lines for setup levels
     for level in setup_levels:
