@@ -49,7 +49,7 @@ def load_data():
 data = load_data()
 
 # Extract unique symbols from the 'fx_supply_demand_swing' sheet
-symbols = data['fx_supply_demand_swing']['Symbol'].unique()
+symbols = data['fx_supply_demand_swing'].lower()['Symbol'].unique()
 
 # Sidebar for sheet selection
 sheet_names = list(data.keys())  # Maintain the order of sheets
