@@ -185,11 +185,14 @@ if sheet.lower() == 'fx_supply_demand_swing':
 data = load_data()
 
 if sheet.lower() == 'fx_supply_demand_swing' and 'fx_supply_demand_swing' in data:
+    # Create two columns for the select box and chart
+    col1, col2 = st.columns([1, 3])
+
     # Extract unique symbols from the 'fx_supply_demand_swing' sheet
     symbols = data['fx_supply_demand_swing']['Symbol'].unique()
 
-    # Add a select box for symbols
-    selected_symbol = st.selectbox("Select a symbol:", options=symbols)
+    # Add a select box for symbols in the first column
+    selected_symbol = col1.selectbox("Select a symbol:", options=symbols)
 
     if selected_symbol:
         # Fetch historical data for the selected symbol
@@ -202,5 +205,6 @@ if sheet.lower() == 'fx_supply_demand_swing' and 'fx_supply_demand_swing' in dat
                         selected_symbol_data.iloc[0]['1st short Setup'],
                         selected_symbol_data.iloc[0]['2nd short Setup']]
 
-        # Plot the interactive chart with horizontal levels
-        plot_interactive_chart(historical_data, setup_levels)
+        # Plot the interactive chart with horizontal levels in the second column
+        with col2:
+            plot_interactive_chart(historical_data, setup_levels)
