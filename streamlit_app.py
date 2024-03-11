@@ -181,18 +181,10 @@ if sheet.lower() == 'fx_supply_demand_swing':
     # Display the full length table without scrolling
     st.write(styled_data)
 
-def load_data():
-    url = "https://www.dropbox.com/scl/fi/c50v70ob66syx58vtc028/COT-Report.xlsx?rlkey=3fu2xoqsln3gaj084hw0rfcw0&dl=1"
-    xls = pd.ExcelFile(url, engine='openpyxl')
+data = load_data()
 
-    # Print sheet names available in the Excel file
-    st.write("Sheet names available in the Excel file:")
-    st.write(xls.sheet_names)
+# Print sheet names available in the loaded data
+st.write("Sheet names available in the loaded data:")
+st.write(data.keys())
 
-    all_sheets_data = {}
-    for sheet_name in xls.sheet_names:
-        # Ensuring that the first row is used as header
-        sheet_data = pd.read_excel(xls, sheet_name=sheet_name, header=0)
-        all_sheets_data[sheet_name] = clean_and_format_data(sheet_data)
-    return all_sheets_data
 
