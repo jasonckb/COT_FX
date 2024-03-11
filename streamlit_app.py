@@ -184,15 +184,38 @@ if sheet.lower() == 'fx_supply_demand_swing':
 
 data = load_data()
 
-# Define a function to fetch historical data for a given symbol
-def get_historical_data(symbol):
-    try:
-        historical_data = yf.download(symbol, period="3mo")
-        return historical_data[['Open', 'High', 'Low', 'Close']]
-    except Exception as e:
-        st.error(f"Error fetching data for {symbol}: {e}")
-        return None
-# Define a function to fetch the latest price for a given symbol
+def plot_interactive_chart(historical_data, setup_levels, symbol):
+    # Resample data to remove weekend gaps
+    historical_data = historical_data.resample('1D').last().ffill().bfill()
+    historical_data = historical_data.loc[(historical_data.index - BDay(1)) != historical_data.index]
+
+    fig = go.Figure()
+
+    # Check if all required columns are present for a candlestick chart
+    if all(col in historical_data.columns for col in ['Open', 'High', 'Low', 'Close']):
+        # Add candlestick chart
+        fig.add_trace(go.Candlestick(x=historical_data.index,
+                                     open=historical_data['Open'],
+                                     high=historical_data['High'],
+                                     low=historical_data['Low'],
+                                     close=historical_data['Close']))
+    else:
+        # Add bar chart using Close prices
+        fig.add_trace(go.Bar(x=historical_data.index, y=historical_data['Close']))
+
+    # Add horizontal lines for setup levels
+    for level in setup_levels:
+        if level is not None:
+            fig.add_shape(type="line",
+                          x0=historical_data.index[0],
+                          y0=level,
+                          x1=historical_data.index[-1],
+                          y1=level,
+                          line=dict(color="red", width=1, dash="dot"))
+
+    fig.update_layout(title='Interactive Chart', xaxis_rangeslider_visible=False)
+    fig.update_xaxes(rangebreaks=[dict(bounds=["sat", "mon"])])
+    st.plotly_chart(fig)
 
 if sheet.lower() == 'fx_supply_demand_swing' and 'FX_Supply_Demand_Swing' in data:
     # Create two columns for the select box and chart
@@ -217,6 +240,6 @@ if sheet.lower() == 'fx_supply_demand_swing' and 'FX_Supply_Demand_Swing' in dat
 
         # Plot the interactive chart with horizontal levels in the second column
         with col2:
-            plot_interactive_chart(historical_data, setup_levels)
+            plot_interactive_chart(historical_data, setup_levels, symbol)
 
 
