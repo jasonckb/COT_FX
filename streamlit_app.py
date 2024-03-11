@@ -167,7 +167,7 @@ if sheet.lower() == 'fx_supply_demand_swing':
 
     # When a symbol is selected, fetch its historical data and display the chart
     if symbol:
-        with st.beta_expander(f"View Chart for {symbol}"):
+        with st.expander(f"View Chart for {symbol}"):
             # Fetch the historical data
             historical_data = get_historical_data(symbol)
 
@@ -188,9 +188,4 @@ if sheet.lower() == 'fx_supply_demand_swing':
                                                  y=[row[level]]*len(historical_data.index),
                                                  mode='lines',
                                                  name=level))
-
-                # Display the figure
-                st.plotly_chart(fig, use_container_width=True)
-            else:
-                st.error("Failed to fetch historical data for the selected symbol.")
 
