@@ -184,17 +184,11 @@ if sheet.lower() == 'fx_supply_demand_swing':
 # Load the data using the load_data() function
 data = load_data()
 
-# Initialize symbols as an empty list
-symbols = []
-
 if sheet.lower() == 'fx_supply_demand_swing' and 'fx_supply_demand_swing' in data:
     # Extract unique symbols from the 'fx_supply_demand_swing' sheet
     symbols = data['fx_supply_demand_swing']['Symbol'].unique()
-    print(f"Data: {data.keys()}")
-    print(f"Symbols: {symbols}")
 
-# Add a select box for symbols only if symbols is not empty
-if symbols:
+    # Add a select box for symbols
     selected_symbol = st.selectbox("Select a symbol:", options=symbols)
 
     if selected_symbol:
