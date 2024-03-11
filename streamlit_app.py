@@ -183,6 +183,29 @@ if sheet.lower() == 'fx_supply_demand_swing':
 
 data = load_data()
 
+def plot_interactive_chart(historical_data, setup_levels):
+    fig = go.Figure()
+
+    # Add candlestick chart
+    fig.add_trace(go.Candlestick(x=historical_data.index,
+                                 open=historical_data['Open'],
+                                 high=historical_data['High'],
+                                 low=historical_data['Low'],
+                                 close=historical_data['Close']))
+
+    # Add horizontal lines for setup levels
+    for level in setup_levels:
+        if level is not None:
+            fig.add_shape(type="line",
+                          x0=historical_data.index[0],
+                          y0=level,
+                          x1=historical_data.index[-1],
+                          y1=level,
+                          line=dict(color="red", width=1, dash="dot"))
+
+    fig.update_layout(title='Interactive Chart', xaxis_rangeslider_visible=True)
+    st.plotly_chart(fig)
+
 if sheet.lower() == 'fx_supply_demand_swing' and 'FX_Supply_Demand_Swing' in data:
     # Create two columns for the select box and chart
     col1, col2 = st.columns([1, 3])
