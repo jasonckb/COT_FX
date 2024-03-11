@@ -180,7 +180,7 @@ if sheet.lower() == 'fx_supply_demand_swing':
     st.write(styled_data)
     
 # Add a new section for 'fx_supply_demand_swing' sheet
-if sheet.lower() == 'fx_supply_demand_swing' and 'fx_supply_demand_swing' in sheet_names:
+if sheet.lower() == 'fx_supply_demand_swing' and 'fx_supply_demand_swing' in data:
     # Extract unique symbols from the 'fx_supply_demand_swing' sheet
     symbols = data['fx_supply_demand_swing']['Symbol'].unique()
 
@@ -199,5 +199,6 @@ if sheet.lower() == 'fx_supply_demand_swing' and 'fx_supply_demand_swing' in she
 
     # Plot the interactive chart with horizontal levels
     plot_interactive_chart(historical_data, setup_levels)
+
 
 
