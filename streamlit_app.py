@@ -187,7 +187,7 @@ data = load_data()
 def plot_interactive_chart(historical_data, setup_levels):
     # Resample data to remove weekend gaps
     historical_data = historical_data.resample('1D').last().ffill().bfill()
-    historical_data = historical_data.loc[historical_data.index.is_business_day]
+    historical_data = historical_data.loc[(historical_data.index - BDay(1)) != historical_data.index]
 
     fig = go.Figure()
 
