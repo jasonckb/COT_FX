@@ -179,9 +179,8 @@ if sheet.lower() == 'fx_supply_demand_swing':
     # Display the full length table without scrolling
     st.write(styled_data)
     
-
 # Add a new section for 'fx_supply_demand_swing' sheet
-if sheet.lower() == 'fx_supply_demand_swing':
+if sheet.lower() == 'fx_supply_demand_swing' and 'fx_supply_demand_swing' in sheet_names:
     # Extract unique symbols from the 'fx_supply_demand_swing' sheet
     symbols = data['fx_supply_demand_swing']['Symbol'].unique()
 
@@ -200,3 +199,5 @@ if sheet.lower() == 'fx_supply_demand_swing':
 
     # Plot the interactive chart with horizontal levels
     plot_interactive_chart(historical_data, setup_levels)
+
+
