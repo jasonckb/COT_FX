@@ -92,24 +92,24 @@ if sheet.lower() not in sheets_without_charts:
 
     with col2:
     # Sort the data by 'Date' in ascending order for correct moving average calculation
-    chart_data_sorted = chart_data.sort_values('Date', ascending=True)
+        chart_data_sorted = chart_data.sort_values('Date', ascending=True)
 
     # Calculate the 13-week moving average using the sorted data
-    chart_data_sorted['13w MA'] = chart_data_sorted[net_position_column].rolling(window=13, min_periods=1).mean()
+        chart_data_sorted['13w MA'] = chart_data_sorted[net_position_column].rolling(window=13, min_periods=1).mean()
 
     # Create the figure for plotting
-    fig2 = go.Figure()
+        fig2 = go.Figure()
 
     # Add the net position line
-    fig2.add_trace(go.Scatter(x=chart_data_sorted['Date'], y=chart_data_sorted[net_position_column],
+        fig2.add_trace(go.Scatter(x=chart_data_sorted['Date'], y=chart_data_sorted[net_position_column],
                               mode='lines', name=net_position_column, line=dict(color='black', width=3)))
 
     # Add the 13-week moving average line
-    fig2.add_trace(go.Scatter(x=chart_data_sorted['Date'], y=chart_data_sorted['13w MA'],
+        fig2.add_trace(go.Scatter(x=chart_data_sorted['Date'], y=chart_data_sorted['13w MA'],
                               mode='lines+markers', name='13 Week MA', line=dict(dash='dot', color='darkgray')))
 
     # Plot the chart using the original order of dates (descending if that's your requirement)
-    st.plotly_chart(fig2, use_container_width=True)
+        st.plotly_chart(fig2, use_container_width=True)
 
 
 # Define a function to color the rows based on conditions
