@@ -179,31 +179,4 @@ if sheet.lower() == 'fx_supply_demand_swing':
     # Display the full length table without scrolling
     st.write(styled_data)
     
-# ... (your existing code for displaying the table)
-
-# Let's assume 'data' is your DataFrame with all the symbols and setup levels
-
-# Add a selectbox for symbol selection
-selected_symbol = st.selectbox("Select a Symbol:", options=data['Symbol'])
-
-# Fetch historical data and plot when a symbol is selected
-if selected_symbol:
-    # Fetch historical data for the selected symbol
-    historical_data = get_historical_data(selected_symbol + "=X")  # Add your convention for symbol naming here
-    
-    # Plot historical data with setup levels
-    if historical_data is not None:
-        fig = go.Figure()
-        
-        # Add the main price line
-        fig.add_trace(go.Scatter(x=historical_data.index, y=historical_data['Close'], mode='lines', name='Price'))
-        
-        # Add setup level lines from your data
-        # Assuming 'data' has columns like '1st Long Setup', '2nd Long Setup', etc. for each symbol
-        setup_levels = data.loc[data['Symbol'] == selected_symbol, ['1st Long Setup', '2nd Long Setup', '1st Short Setup', '2nd Short Setup']].values.flatten()
-        for level in setup_levels:
-            fig.add_hline(y=level, line_dash="dash", line_color="blue")
-        
-        # Display the figure
-        st.plotly_chart(fig)
 
