@@ -154,29 +154,33 @@ def get_latest_price(symbol):
         return None
 
 if sheet.lower() == 'fx_supply_demand_swing':
-    # Refresh button in the sidebar
-    if st.sidebar.button('Refresh FX Rate'):
-        # Fetch and update latest prices
-        for idx, row in data[sheet].iterrows():
-            symbol = row['Symbol'].replace("/", "") + "=X"
-            data[sheet].at[idx, 'Latest Price'] = get_latest_price(symbol)
+    # Display a selectbox with all symbols
+    symbol = st.selectbox('Select Symbol:', data[sheet]['Symbol'])
 
-    # Make sure 'Latest Price' exists before reordering columns
-    if 'Latest Price' not in data[sheet].columns:
-        data[sheet]['Latest Price'] = pd.NA
+    # When a symbol is selected, fetch its historical data and display the chart
+    if symbol:
+        # Fetch the historical data
+        historical_data = get_historical_data(symbol)
 
-    # Ensure the 'Latest Price' column is second
-    # First, get all columns excluding 'Symbol' and 'Latest Price'
-    other_cols = [col for col in data[sheet].columns if col not in ['Symbol', 'Latest Price']]
-    # Define new column order
-    new_cols = ['Symbol', 'Latest Price'] + other_cols
-    # Reorder the DataFrame
-    data[sheet] = data[sheet][new_cols]
+        # Check if historical data was fetched successfully
+        if historical_data is not None:
+            # Plotting the candlestick chart
+            fig = go.Figure(data=[go.Candlestick(x=historical_data.index,
+                                                 open=historical_data['Open'],
+                                                 high=historical_data['High'],
+                                                 low=historical_data['Low'],
+                                                 close=historical_data['Close'])])
 
-    # Apply the coloring function to the DataFrame
-    styled_data = data[sheet].style.apply(color_rows, axis=None)
+            # Add setup levels from the data
+            row = data[sheet][data[sheet]['Symbol'] == symbol].iloc[0]
+            for level in ['1st Long Setup', '2nd Long Setup', '1st short Setup', '2nd short Setup']:
+                fig.add_trace(go.Scatter(x=historical_data.index,
+                                         y=[row[level]]*len(historical_data.index),
+                                         mode='lines',
+                                         name=level))
 
-    # Display the full length table without scrolling
-    st.write(styled_data)
-    
+            # Display the figure
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.error("Failed to fetch historical data for the selected symbol.")
 
