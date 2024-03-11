@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+from pandas.tseries.offsets import BDay
 import plotly.graph_objects as go
 import plotly.express as px
 import openpyxl
@@ -184,6 +185,10 @@ if sheet.lower() == 'fx_supply_demand_swing':
 data = load_data()
 
 def plot_interactive_chart(historical_data, setup_levels):
+    # Resample data to remove weekend gaps
+    historical_data = historical_data.resample('1D').last().ffill().bfill()
+    historical_data = historical_data.loc[historical_data.index.is_business_day]
+
     fig = go.Figure()
 
     # Add candlestick chart
@@ -203,7 +208,8 @@ def plot_interactive_chart(historical_data, setup_levels):
                           y1=level,
                           line=dict(color="red", width=1, dash="dot"))
 
-    fig.update_layout(title='Interactive Chart', xaxis_rangeslider_visible=True)
+    fig.update_layout(title='Interactive Chart', xaxis_rangeslider_visible=False)
+    fig.update_xaxes(rangebreaks=[dict(bounds=["sat", "mon"])])
     st.plotly_chart(fig)
 
 if sheet.lower() == 'fx_supply_demand_swing' and 'FX_Supply_Demand_Swing' in data:
