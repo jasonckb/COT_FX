@@ -184,7 +184,7 @@ if sheet.lower() == 'fx_supply_demand_swing':
 
 data = load_data()
 
-def plot_interactive_chart(historical_data, setup_levels, symbol):
+def plot_interactive_chart(historical_data, setup_levels):
     # Resample data to remove weekend gaps
     historical_data = historical_data.resample('1D').last().ffill().bfill()
     historical_data = historical_data.loc[(historical_data.index - BDay(1)) != historical_data.index]
@@ -240,6 +240,6 @@ if sheet.lower() == 'fx_supply_demand_swing' and 'FX_Supply_Demand_Swing' in dat
 
         # Plot the interactive chart with horizontal levels in the second column
         with col2:
-            plot_interactive_chart(historical_data, setup_levels, symbol)
+            plot_interactive_chart(historical_data, setup_levels)
 
 
