@@ -142,7 +142,7 @@ def color_rows(df):
 # Define a function to fetch historical data for a given symbol
 def get_historical_data(symbol):
     try:
-        historical_data = yf.download(symbol, period="1mo")
+        historical_data = yf.download(symbol, period="3mo")
         return historical_data[['Open', 'High', 'Low', 'Close']]
     except Exception as e:
         st.error(f"Error fetching data for {symbol}: {e}")
