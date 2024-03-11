@@ -181,11 +181,18 @@ if sheet.lower() == 'fx_supply_demand_swing':
     # Display the full length table without scrolling
     st.write(styled_data)
 
-# Load the data using the load_data() function
-data = load_data()
+def load_data():
+    url = "https://www.dropbox.com/scl/fi/c50v70ob66syx58vtc028/COT-Report.xlsx?rlkey=3fu2xoqsln3gaj084hw0rfcw0&dl=1"
+    xls = pd.ExcelFile(url, engine='openpyxl')
 
-if 'fx_supply_demand_swing' in data:
-    st.write("Data loaded successfully!")
-    st.write(data['fx_supply_demand_swing'].head())
-else:
-    st.error("'fx_supply_demand_swing' sheet not found in the loaded data.")
+    # Print sheet names available in the Excel file
+    st.write("Sheet names available in the Excel file:")
+    st.write(xls.sheet_names)
+
+    all_sheets_data = {}
+    for sheet_name in xls.sheet_names:
+        # Ensuring that the first row is used as header
+        sheet_data = pd.read_excel(xls, sheet_name=sheet_name, header=0)
+        all_sheets_data[sheet_name] = clean_and_format_data(sheet_data)
+    return all_sheets_data
+
