@@ -180,11 +180,15 @@ if sheet.lower() == 'fx_supply_demand_swing':
 
     # Display the full length table without scrolling
     st.write(styled_data)
+    
+    # Add a select box for symbols
+    selected_symbol = st.selectbox("Select a symbol:", options=[])
+
     if sheet.lower() == 'fx_supply_demand_swing' and 'fx_supply_demand_swing' in data:
     # Extract unique symbols from the 'fx_supply_demand_swing' sheet
         symbols = data['fx_supply_demand_swing']['Symbol'].unique()
 
-    # Add a select box for symbols
+    # Update the select box options
         selected_symbol = st.selectbox("Select a symbol:", options=symbols)
 
     # Fetch historical data and plot the chart only when a symbol is selected
@@ -201,6 +205,7 @@ if sheet.lower() == 'fx_supply_demand_swing':
 
         # Plot the interactive chart with horizontal levels
         plot_interactive_chart(historical_data, setup_levels)
+
 
 
 
