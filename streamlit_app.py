@@ -181,3 +181,31 @@ if sheet.lower() == 'fx_supply_demand_swing':
     # Display the full length table without scrolling
     st.write(styled_data)
 
+data = load_data()
+
+# Initialize symbols as an empty list
+symbols = []
+
+if sheet.lower() == 'fx_supply_demand_swing':
+    # Extract unique symbols from the 'fx_supply_demand_swing' sheet
+    symbols = data['fx_supply_demand_swing']['Symbol'].unique()
+    print(f"Data: {data.keys()}")
+    print(f"Symbols: {symbols}")
+
+# Add a select box for symbols only if symbols is not empty
+if symbols:
+    selected_symbol = st.selectbox("Select a symbol:", options=symbols)
+
+    if selected_symbol:
+        # Fetch historical data for the selected symbol
+        selected_symbol_data = data['fx_supply_demand_swing'][data['fx_supply_demand_swing']['Symbol'] == selected_symbol]
+        historical_data = get_historical_data(selected_symbol_data.iloc[0]['Symbol'].replace("/", "") + "=X")
+
+        # Get setup levels for the selected symbol
+        setup_levels = [selected_symbol_data.iloc[0]['1st Long Setup'],
+                        selected_symbol_data.iloc[0]['2nd Long Setup'],
+                        selected_symbol_data.iloc[0]['1st short Setup'],
+                        selected_symbol_data.iloc[0]['2nd short Setup']]
+
+        # Plot the interactive chart with horizontal levels
+        plot_interactive_chart(historical_data, setup_levels)
