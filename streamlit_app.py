@@ -57,31 +57,6 @@ data = load_data()
 sheet_names = list(data.keys())  # Maintain the order of sheets
 sheet = st.sidebar.selectbox("Select a sheet:", options=sheet_names)
 
-sheet = st.sidebar.selectbox("Select a sheet:", options=sheet_names)
-
-# Add a new section for 'fx_supply_demand_swing' sheet
-if sheet.lower() == 'fx_supply_demand_swing' and 'fx_supply_demand_swing' in data:
-    # Extract unique symbols from the 'fx_supply_demand_swing' sheet
-    symbols = data['fx_supply_demand_swing']['Symbol'].unique()
-
-    # Add a select box for symbols
-    selected_symbol = st.sidebar.selectbox("Select a symbol:", options=symbols)
-
-    # Fetch historical data for the selected symbol
-    selected_symbol_data = data['fx_supply_demand_swing'][data['fx_supply_demand_swing']['Symbol'] == selected_symbol]
-    historical_data = get_historical_data(selected_symbol_data.iloc[0]['Symbol'].replace("/", "") + "=X")
-
-    # Get setup levels for the selected symbol
-    setup_levels = [selected_symbol_data.iloc[0]['1st Long Setup'],
-                    selected_symbol_data.iloc[0]['2nd Long Setup'],
-                    selected_symbol_data.iloc[0]['1st short Setup'],
-                    selected_symbol_data.iloc[0]['2nd short Setup']]
-
-    # Plot the interactive chart with horizontal levels
-    plot_interactive_chart(historical_data, setup_levels)
-
-if sheet.lower() != 'fx_supply_demand_swing':
-    st.dataframe(data[sheet], width=None)
 
 
 # Display data table for the selected sheet with formatting applied
@@ -206,26 +181,26 @@ if sheet.lower() == 'fx_supply_demand_swing':
     # Display the full length table without scrolling
     st.write(styled_data)
     
-# Add a new section for 'fx_supply_demand_swing' sheet
 if sheet.lower() == 'fx_supply_demand_swing' and 'fx_supply_demand_swing' in data:
     # Extract unique symbols from the 'fx_supply_demand_swing' sheet
     symbols = data['fx_supply_demand_swing']['Symbol'].unique()
 
     # Add a select box for symbols
-    selected_symbol = st.sidebar.selectbox("Select a symbol:", options=symbols)
+    selected_symbol = st.selectbox("Select a symbol:", options=symbols)
 
-    # Fetch historical data for the selected symbol
-    selected_symbol_data = data['fx_supply_demand_swing'][data['fx_supply_demand_swing']['Symbol'] == selected_symbol]
-    historical_data = get_historical_data(selected_symbol_data.iloc[0]['Symbol'].replace("/", "") + "=X")
+    if selected_symbol:
+        # Fetch historical data for the selected symbol
+        selected_symbol_data = data['fx_supply_demand_swing'][data['fx_supply_demand_swing']['Symbol'] == selected_symbol]
+        historical_data = get_historical_data(selected_symbol_data.iloc[0]['Symbol'].replace("/", "") + "=X")
 
-    # Get setup levels for the selected symbol
-    setup_levels = [selected_symbol_data.iloc[0]['1st Long Setup'],
-                    selected_symbol_data.iloc[0]['2nd Long Setup'],
-                    selected_symbol_data.iloc[0]['1st short Setup'],
-                    selected_symbol_data.iloc[0]['2nd short Setup']]
+        # Get setup levels for the selected symbol
+        setup_levels = [selected_symbol_data.iloc[0]['1st Long Setup'],
+                        selected_symbol_data.iloc[0]['2nd Long Setup'],
+                        selected_symbol_data.iloc[0]['1st short Setup'],
+                        selected_symbol_data.iloc[0]['2nd short Setup']]
 
-    # Plot the interactive chart with horizontal levels
-    plot_interactive_chart(historical_data, setup_levels)
+        # Plot the interactive chart with horizontal levels
+        plot_interactive_chart(historical_data, setup_levels)
 
 
 
